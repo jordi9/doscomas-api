@@ -1,0 +1,53 @@
+[versions]
+kotlin = "2.3.21"
+micrometer = "1.15.0"
+opentelemetry = "1.61.0"
+opentelemetry-alpha = "1.61.0-alpha"
+
+[libraries]
+ktor-bom = "io.ktor:ktor-bom:3.3.2"
+ktor-server-core = { module = "io.ktor:ktor-server-core-jvm" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty-jvm" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host-jvm" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation" }
+ktor-server-metrics-micrometer = { module = "io.ktor:ktor-server-metrics-micrometer" }
+ktor-server-call-id = { module = "io.ktor:ktor-server-call-id" }
+ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages" }
+
+kotest-bom = "io.kotest:kotest-bom:6.0.5"
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core" }
+
+logback = "ch.qos.logback:logback-classic:1.5.19"
+kotlinx-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
+sqlite-jdbc = "org.xerial:sqlite-jdbc:3.50.3.0"
+flyway-core = "org.flywaydb:flyway-core:11.18.0"
+
+micrometer-bom = { module = "io.micrometer:micrometer-bom", version.ref = "micrometer" }
+micrometer-core = { module = "io.micrometer:micrometer-core" }
+micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
+
+opentelemetry-bom = { module = "io.opentelemetry:opentelemetry-bom", version.ref = "opentelemetry" }
+opentelemetry-bom-alpha = { module = "io.opentelemetry:opentelemetry-bom-alpha", version.ref = "opentelemetry-alpha" }
+opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api" }
+opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk" }
+opentelemetry-ktor = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:2.21.0-alpha"
+
+krat-pack-core = "com.jordi9:krat-pack-core:0.1.1"
+krat-pack-cors = "com.jordi9:krat-pack-cors:0.1.0"
+krat-pack-testlib = "com.jordi9:krat-pack-testlib:0.1.0"
+krat-logging = "com.jordi9:krat-logging:0.1.0"
+krat-logging-testlib = "com.jordi9:krat-logging-testlib:0.1.0"
+krat-otel = "com.jordi9:krat-otel:1.1.0"
+krat-time = "com.jordi9:krat-time:0.1.0"
+krat-time-testlib = "com.jordi9:krat-time-testlib:0.1.0"
+krat-otel-testlib = "com.jordi9:krat-otel-testlib:0.1.0"
+krat-jdbi = "com.jordi9:krat-jdbi:0.1.0"
+krat-kogiven = "com.jordi9:krat-kogiven:0.2.0"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+spotless = "com.diffplug.spotless:8.3.0"
