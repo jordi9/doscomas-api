@@ -7,9 +7,17 @@ permissions:
   contents: write
   packages: write
 
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/doscomas
+
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      version_tag: ${{ steps.version.outputs.version_tag }}
+      previous: ${{ steps.version.outputs.previous }}
+      notes: ${{ steps.notes.outputs.content }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -35,27 +43,119 @@ jobs:
         with:
           args: ${{ steps.version.outputs.previous }}..HEAD
 
-      - uses: jordi9/actions/gh-release@v1
+      - name: Upload installDist
+        uses: actions/upload-artifact@v4
         with:
-          version: ${{ steps.version.outputs.version_tag }}
-          body: ${{ steps.notes.outputs.content }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: installDist
+          path: app/build/install/app
+          retention-days: 1
+          if-no-files-found: error
 
-      - name: Log in to GHCR
+  docker:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+            suffix: amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            suffix: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download installDist
+        uses: actions/download-artifact@v4
+        with:
+          name: installDist
+          path: app/build/install/app
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_ACTOR: ${{ github.actor }}
         run: echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
 
-      - name: Build and push image
+      - name: Build and push by digest
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            APP_VERSION=${{ needs.build.outputs.version }}
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export digest
         env:
-          OWNER: ${{ github.repository_owner }}
-          VERSION: ${{ steps.version.outputs.version }}
-          VERSION_TAG: ${{ steps.version.outputs.version_tag }}
+          DIGEST: ${{ steps.push.outputs.digest }}
         run: |
-          IMAGE="ghcr.io/${OWNER}/doscomas"
-          docker build --build-arg APP_VERSION="$VERSION" -t "$IMAGE:$VERSION" -t "$IMAGE:latest" .
-          docker push "$IMAGE:$VERSION"
-          docker push "$IMAGE:latest"
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${DIGEST#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.suffix }}
+          path: /tmp/digests/*
+          retention-days: 1
+          if-no-files-found: error
+
+  manifest:
+    needs: [build, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digest-*
+          merge-multiple: true
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+        run: echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
+
+      - name: Create manifest list
+        working-directory: /tmp/digests
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          docker buildx imagetools create \
+            -t "${IMAGE}:${VERSION}" \
+            -t "${IMAGE}:latest" \
+            $(printf "${IMAGE}@sha256:%s " *)
+          docker buildx imagetools inspect "${IMAGE}:${VERSION}"
+
+  release:
+    needs: [build, manifest]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: jordi9/actions/gh-release@v1
+        with:
+          version: ${{ needs.build.outputs.version_tag }}
+          body: ${{ needs.build.outputs.notes }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+          VERSION_TAG: ${{ needs.build.outputs.version_tag }}
+        run: |
           echo "Released $VERSION_TAG"
-          echo "Image: $IMAGE:$VERSION"
+          echo "Image: $IMAGE:$VERSION (linux/amd64, linux/arm64)"
