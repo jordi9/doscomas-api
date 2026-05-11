@@ -1,4 +1,4 @@
-FROM amazoncorretto:25-alpine
+FROM eclipse-temurin:25-jre
 
 ARG APP_VERSION=dev
 ENV APP_VERSION=${APP_VERSION}
