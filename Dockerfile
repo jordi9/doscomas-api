@@ -5,6 +5,7 @@ ENV APP_VERSION=${APP_VERSION}
 
 WORKDIR /app
 COPY app/build/install/app ./
+RUN chmod +x bin/app
 
 EXPOSE 8080
 
