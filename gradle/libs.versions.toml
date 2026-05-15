@@ -5,7 +5,7 @@ opentelemetry = "1.62.0"
 opentelemetry-alpha = "1.62.0-alpha"
 
 [libraries]
-ktor-bom = "io.ktor:ktor-bom:3.4.3"
+ktor-bom = "io.ktor:ktor-bom:3.5.0"
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json" }
@@ -15,6 +15,7 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 ktor-server-metrics-micrometer = { module = "io.ktor:ktor-server-metrics-micrometer" }
 ktor-server-call-id = { module = "io.ktor:ktor-server-call-id" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages" }
+ktor-redoc = "io.github.smiley4:ktor-redoc:5.7.0"
 
 kotest-bom = "io.kotest:kotest-bom:6.1.11"
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5" }
@@ -23,7 +24,7 @@ kotest-assertions-core = { module = "io.kotest:kotest-assertions-core" }
 logback = "ch.qos.logback:logback-classic:1.5.32"
 kotlinx-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0"
 sqlite-jdbc = "org.xerial:sqlite-jdbc:3.53.1.0"
-flyway-core = "org.flywaydb:flyway-core:12.6.0"
+flyway-core = "org.flywaydb:flyway-core:12.6.1"
 
 micrometer-bom = { module = "io.micrometer:micrometer-bom", version.ref = "micrometer" }
 micrometer-core = { module = "io.micrometer:micrometer-core" }
@@ -37,7 +38,7 @@ opentelemetry-ktor = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:2.
 
 krat-pack-core = "com.jordi9:krat-pack-core:0.1.1"
 krat-pack-cors = "com.jordi9:krat-pack-cors:0.1.0"
-krat-pack-testlib = "com.jordi9:krat-pack-testlib:0.1.0"
+krat-pack-testlib = "com.jordi9:krat-pack-testlib:1.0.0"
 krat-logging = "com.jordi9:krat-logging:0.1.0"
 krat-logging-testlib = "com.jordi9:krat-logging-testlib:0.1.0"
 krat-otel = "com.jordi9:krat-otel:1.1.0"

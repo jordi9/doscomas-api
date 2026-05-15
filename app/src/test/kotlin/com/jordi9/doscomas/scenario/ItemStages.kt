@@ -19,8 +19,7 @@ import io.ktor.http.contentType
 
 class ItemContext {
   var status: HttpStatusCode by required()
-  var items: JsonResponse by required()
-  var item: JsonResponse by required()
+  var response: JsonResponse by required()
   val insertedItemIds: MutableList<ItemId> = mutableListOf()
 }
 
@@ -40,7 +39,7 @@ class WhenItem : StageContext<WhenItem, ItemContext>() {
     val response = httpClient().get("/api/v1/items")
     ctx.status = response.status
     if (response.status == HttpStatusCode.OK) {
-      ctx.items = response.toJsonResponse()
+      ctx.response = response.toJsonResponse()
     }
   }
 
@@ -58,7 +57,7 @@ class WhenItem : StageContext<WhenItem, ItemContext>() {
       }
     ctx.status = response.status
     if (response.status == HttpStatusCode.Created) {
-      ctx.item = response.toJsonResponse()
+      ctx.response = response.toJsonResponse()
     }
   }
 
@@ -66,7 +65,7 @@ class WhenItem : StageContext<WhenItem, ItemContext>() {
     val response = httpClient().get("/api/v1/items/${ctx.insertedItemIds.last().value}")
     ctx.status = response.status
     if (response.status == HttpStatusCode.OK) {
-      ctx.item = response.toJsonResponse()
+      ctx.response = response.toJsonResponse()
     }
   }
 
@@ -90,23 +89,23 @@ class ThenItem : StageContext<ThenItem, ItemContext>() {
   }
 
   fun `no items are returned`() = apply {
-    ctx.items.isEmpty() shouldBe true
+    ctx.response.isEmpty() shouldBe true
   }
 
   fun `items are returned`(count: Int) = apply {
-    ctx.items.items().size shouldBe count
+    ctx.response.items().size shouldBe count
   }
 
   fun `the item has name`(expected: String) = apply {
-    ctx.item.string("name") shouldBe expected
+    ctx.response.string("name") shouldBe expected
   }
 
   fun `the item has description`(expected: String) = apply {
-    ctx.item.string("description") shouldBe expected
+    ctx.response.string("description") shouldBe expected
   }
 
   fun `the item has no description`() = apply {
-    ctx.item.stringOrNull("description") shouldBe null
+    ctx.response.stringOrNull("description") shouldBe null
   }
 
   fun `a notification was sent`(expected: String) = apply {

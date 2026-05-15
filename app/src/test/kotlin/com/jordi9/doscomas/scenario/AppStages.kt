@@ -1,10 +1,14 @@
 package com.jordi9.doscomas.scenario
 
+import com.jordi9.doscomas.SkeletonTestApp
 import com.jordi9.doscomas.httpClient
 import com.jordi9.doscomas.jdbi
 import com.jordi9.kogiven.StageContext
 import com.jordi9.kogiven.required
 import com.jordi9.krat.jdbi.handleSync
+import com.jordi9.krat.pack.test.OpenApiSpec
+import io.kotest.assertions.withClue
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -12,6 +16,7 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.options
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -19,19 +24,8 @@ import org.jdbi.v3.core.kotlin.mapTo
 
 class AppContext {
   var migrationCount: Int = 0
-  var healthCheckStatus: HttpStatusCode by required()
-  var healthCheckResponse: String by required()
-  var readinessStatus: HttpStatusCode by required()
-  var readinessResponse: String by required()
-  var metricsStatus: HttpStatusCode by required()
-  var metricsResponse: String by required()
-  var metricsContentType: String by required()
-  var corsPreflightStatus: HttpStatusCode by required()
-  var corsAllowOrigin: String? = null
-  var corsAllowMethods: String? = null
-  var corsAllowHeaders: String? = null
-  var corsActualRequestStatus: HttpStatusCode by required()
-  var corsActualRequestAllowOrigin: String? = null
+  var response: HttpResponse by required()
+  var openApiSpec: OpenApiSpec by required()
 }
 
 class GivenApp : StageContext<GivenApp, AppContext>() {
@@ -42,31 +36,23 @@ class GivenApp : StageContext<GivenApp, AppContext>() {
 
 class WhenApp : StageContext<WhenApp, AppContext>() {
   fun `querying the database schema`() = apply {
-    ctx.migrationCount =
-      jdbi().handleSync {
-        createQuery("SELECT COUNT(*) FROM flyway_schema_history")
-          .mapTo<Int>()
-          .one()
-      }
+    ctx.migrationCount = jdbi().handleSync {
+      createQuery("SELECT COUNT(*) FROM flyway_schema_history")
+        .mapTo<Int>()
+        .one()
+    }
   }
 
   suspend fun `checking the liveness health endpoint`() = apply {
-    val response = httpClient().get("/health/liveness")
-    ctx.healthCheckStatus = response.status
-    ctx.healthCheckResponse = response.bodyAsText()
+    ctx.response = httpClient().get("/health/liveness")
   }
 
   suspend fun `checking the readiness health endpoint`() = apply {
-    val response = httpClient().get("/health/readiness")
-    ctx.readinessStatus = response.status
-    ctx.readinessResponse = response.bodyAsText()
+    ctx.response = httpClient().get("/health/readiness")
   }
 
   suspend fun `requesting the metrics endpoint`() = apply {
-    val response = httpClient().get("/metrics")
-    ctx.metricsStatus = response.status
-    ctx.metricsResponse = response.bodyAsText()
-    ctx.metricsContentType = response.headers["Content-Type"] ?: ""
+    ctx.response = httpClient().get("/metrics")
   }
 
   suspend fun `making an HTTP request to hello endpoint`() = apply {
@@ -74,25 +60,21 @@ class WhenApp : StageContext<WhenApp, AppContext>() {
   }
 
   suspend fun `sending a CORS preflight request from localhost 5173`() = apply {
-    val response =
-      httpClient().options("/api/v1/items") {
-        header(HttpHeaders.Origin, "http://localhost:5173")
-        header(HttpHeaders.AccessControlRequestMethod, "GET")
-        header(HttpHeaders.AccessControlRequestHeaders, "Content-Type")
-      }
-    ctx.corsPreflightStatus = response.status
-    ctx.corsAllowOrigin = response.headers[HttpHeaders.AccessControlAllowOrigin]
-    ctx.corsAllowMethods = response.headers[HttpHeaders.AccessControlAllowMethods]
-    ctx.corsAllowHeaders = response.headers[HttpHeaders.AccessControlAllowHeaders]
+    ctx.response = httpClient().options("/api/v1/items") {
+      header(HttpHeaders.Origin, "http://localhost:5173")
+      header(HttpHeaders.AccessControlRequestMethod, "GET")
+      header(HttpHeaders.AccessControlRequestHeaders, "Content-Type")
+    }
   }
 
   suspend fun `sending an actual request with Origin header from localhost 5173`() = apply {
-    val response =
-      httpClient().get("/api/v1/items") {
-        header(HttpHeaders.Origin, "http://localhost:5173")
-      }
-    ctx.corsActualRequestStatus = response.status
-    ctx.corsActualRequestAllowOrigin = response.headers[HttpHeaders.AccessControlAllowOrigin]
+    ctx.response = httpClient().get("/api/v1/items") {
+      header(HttpHeaders.Origin, "http://localhost:5173")
+    }
+  }
+
+  fun `loading the OpenAPI spec`() = apply {
+    ctx.openApiSpec = OpenApiSpec(SkeletonTestApp.application)
   }
 }
 
@@ -101,44 +83,58 @@ class ThenApp : StageContext<ThenApp, AppContext>() {
     ctx.migrationCount shouldBeGreaterThan 0
   }
 
-  fun `the health check is healthy`() = apply {
-    ctx.healthCheckStatus shouldBe HttpStatusCode.OK
-    ctx.healthCheckResponse shouldBe "liveness: HEALTHY"
+  suspend fun `the health check is healthy`() = apply {
+    ctx.response.status shouldBe HttpStatusCode.OK
+    ctx.response.bodyAsText() shouldBe "liveness: HEALTHY"
   }
 
-  fun `the readiness check is healthy`() = apply {
-    ctx.readinessStatus shouldBe HttpStatusCode.OK
-    ctx.readinessResponse shouldContain "database"
-    ctx.readinessResponse shouldContain "HEALTHY"
+  suspend fun `the readiness check is healthy`() = apply {
+    ctx.response.status shouldBe HttpStatusCode.OK
+    ctx.response.bodyAsText() shouldContain "database"
+    ctx.response.bodyAsText() shouldContain "HEALTHY"
   }
 
-  fun `metrics are returned in Prometheus format`() = apply {
-    ctx.metricsStatus shouldBe HttpStatusCode.OK
-    ctx.metricsContentType shouldStartWith "text/plain"
-    ctx.metricsResponse shouldContain "jvm_"
+  suspend fun `metrics are returned in Prometheus format`() = apply {
+    ctx.response.status shouldBe HttpStatusCode.OK
+    ctx.response.headers[HttpHeaders.ContentType] shouldStartWith "text/plain"
+    ctx.response.bodyAsText() shouldContain "jvm_"
   }
 
-  fun `metrics contain request counter for hello endpoint`() = apply {
-    ctx.metricsResponse shouldContain "http_server_requests_seconds_count"
-    ctx.metricsResponse shouldContain "method=\"GET\""
-    ctx.metricsResponse shouldContain "route=\"/hello\""
-    ctx.metricsResponse shouldContain "status=\"200\""
+  suspend fun `metrics contain request counter for hello endpoint`() = apply {
+    ctx.response.bodyAsText() shouldContain "http_server_requests_seconds_count"
+    ctx.response.bodyAsText() shouldContain "method=\"GET\""
+    ctx.response.bodyAsText() shouldContain "route=\"/hello\""
+    ctx.response.bodyAsText() shouldContain "status=\"200\""
   }
 
-  fun `metrics contain request duration histogram`() = apply {
-    ctx.metricsResponse shouldContain "http_server_requests_seconds{"
-    ctx.metricsResponse shouldContain "http_server_requests_seconds_sum"
-    ctx.metricsResponse shouldContain "http_server_requests_seconds_max"
+  suspend fun `metrics contain request duration histogram`() = apply {
+    ctx.response.bodyAsText() shouldContain "http_server_requests_seconds{"
+    ctx.response.bodyAsText() shouldContain "http_server_requests_seconds_sum"
+    ctx.response.bodyAsText() shouldContain "http_server_requests_seconds_max"
   }
 
   fun `CORS preflight response allows the origin`() = apply {
-    ctx.corsPreflightStatus shouldBe HttpStatusCode.OK
-    ctx.corsAllowOrigin shouldBe "http://localhost:5173"
-    ctx.corsAllowHeaders shouldContain "Content-Type"
+    ctx.response.status shouldBe HttpStatusCode.OK
+    ctx.response.headers[HttpHeaders.AccessControlAllowOrigin] shouldBe "http://localhost:5173"
+    ctx.response.headers[HttpHeaders.AccessControlAllowHeaders] shouldContain "Content-Type"
   }
 
   fun `CORS actual response includes allow origin header`() = apply {
-    ctx.corsActualRequestStatus shouldBe HttpStatusCode.OK
-    ctx.corsActualRequestAllowOrigin shouldBe "http://localhost:5173"
+    ctx.response.status shouldBe HttpStatusCode.OK
+    ctx.response.headers[HttpHeaders.AccessControlAllowOrigin] shouldBe "http://localhost:5173"
+  }
+
+  fun `every registered route is documented in openapi yaml`() = apply {
+    val undocumented = ctx.openApiSpec.registeredFilteredRoutes - ctx.openApiSpec.documentedRoutes
+    withClue("Routes registered in code but missing from openapi.yaml: $undocumented") {
+      undocumented.shouldBeEmpty()
+    }
+  }
+
+  fun `no orphaned routes exist in openapi yaml`() = apply {
+    val orphaned = ctx.openApiSpec.documentedRoutes - ctx.openApiSpec.registeredRoutes
+    withClue("Routes documented in openapi.yaml but not registered in code: $orphaned") {
+      orphaned.shouldBeEmpty()
+    }
   }
 }

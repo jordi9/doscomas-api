@@ -58,4 +58,16 @@ class AppShould :
       When.`sending an actual request with Origin header from localhost 5173`()
       Then.`CORS actual response includes allow origin header`()
     }
+
+    "document every registered route in openapi.yaml" {
+      Given.`the application has started`()
+      When.`loading the OpenAPI spec`()
+      Then.`every registered route is documented in openapi yaml`()
+    }
+
+    "not document routes that are not registered" {
+      Given.`the application has started`()
+      When.`loading the OpenAPI spec`()
+      Then.`no orphaned routes exist in openapi yaml`()
+    }
   })

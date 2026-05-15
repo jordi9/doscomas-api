@@ -8,6 +8,23 @@ servers:
   - url: http://localhost:8080
 
 paths:
+  /:
+    get:
+      summary: Hello greeting (root alias)
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Greeting message
+          content:
+            text/plain:
+              schema:
+                type: string
+
   /hello:
     get:
       summary: Hello greeting
@@ -93,6 +110,21 @@ paths:
       responses:
         '200':
           description: Service is ready
+
+  /health/{name}:
+    get:
+      summary: Run a single named health check
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Named health check passed
+        '503':
+          description: Named health check failed
 
   /metrics:
     get:
