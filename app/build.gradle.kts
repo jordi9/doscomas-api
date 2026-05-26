@@ -18,6 +18,7 @@ dependencies {
 
     implementation(libs.krat.pack.core)
     implementation(libs.krat.pack.cors)
+    implementation(libs.krat.pack.otel)
     implementation(libs.krat.logging)
     implementation(libs.krat.otel)
     implementation(libs.krat.time)

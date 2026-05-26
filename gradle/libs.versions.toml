@@ -38,10 +38,11 @@ opentelemetry-ktor = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:2.
 
 krat-pack-core = "com.jordi9:krat-pack-core:0.1.1"
 krat-pack-cors = "com.jordi9:krat-pack-cors:0.1.0"
+krat-pack-otel = "com.jordi9:krat-pack-otel:1.0.0"
 krat-pack-testlib = "com.jordi9:krat-pack-testlib:1.0.0"
 krat-logging = "com.jordi9:krat-logging:0.1.0"
 krat-logging-testlib = "com.jordi9:krat-logging-testlib:0.1.0"
-krat-otel = "com.jordi9:krat-otel:1.1.0"
+krat-otel = "com.jordi9:krat-otel:1.2.0"
 krat-time = "com.jordi9:krat-time:0.1.0"
 krat-time-testlib = "com.jordi9:krat-time-testlib:0.1.0"
 krat-otel-testlib = "com.jordi9:krat-otel-testlib:0.1.0"

@@ -9,7 +9,6 @@ import com.jordi9.doscomas.shared.inbound.handler.installErrorHandling
 import com.jordi9.doscomas.shared.inbound.health.DatabaseHealthCheck
 import com.jordi9.doscomas.shared.inbound.metrics.MetricsHandler
 import com.jordi9.doscomas.shared.outbound.db.runDatabaseMigrations
-import com.jordi9.doscomas.shared.outbound.tracing.withStartupTracer
 import com.jordi9.krat.jdbi.DatabaseConfig
 import com.jordi9.krat.otel.OpenTelemetryConfig
 import com.jordi9.krat.pack.core.config
@@ -18,6 +17,7 @@ import com.jordi9.krat.pack.core.healthChecks
 import com.jordi9.krat.pack.core.post
 import com.jordi9.krat.pack.cors.CorsConfig
 import com.jordi9.krat.pack.cors.installCors
+import com.jordi9.krat.pack.otel.startupTracer
 import io.github.smiley4.ktorredoc.redoc
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -43,8 +43,8 @@ fun Application.server(
   cors: CorsConfig = config("cors"),
   registry: Registry = Registry(database, tracing)
 ) {
-  withStartupTracer(registry.openTelemetry, tracing.serviceName) {
-    runDatabaseMigrations(this, database.url)
+  startupTracer(registry.openTelemetry) { tracer ->
+    runDatabaseMigrations(tracer, database.url)
 
     installContentNegotiation()
     installCors(cors)
@@ -71,7 +71,7 @@ fun Application.routes(greeting: GreetingConfig, registry: Registry) {
 
     route("docs") {
       redoc("/static/openapi.yaml") {
-        pageTitle = "Doscomas API Documentation"
+        pageTitle = "Dos Comas API Documentation"
       }
     }
 
