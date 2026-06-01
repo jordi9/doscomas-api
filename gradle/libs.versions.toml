@@ -21,10 +21,10 @@ kotest-bom = "io.kotest:kotest-bom:6.1.11"
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core" }
 
-logback = "ch.qos.logback:logback-classic:1.5.32"
+logback = "ch.qos.logback:logback-classic:1.5.34"
 kotlinx-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0"
 sqlite-jdbc = "org.xerial:sqlite-jdbc:3.53.1.0"
-flyway-core = "org.flywaydb:flyway-core:12.6.1"
+flyway-core = "org.flywaydb:flyway-core:12.7.0"
 
 micrometer-bom = { module = "io.micrometer:micrometer-bom", version.ref = "micrometer" }
 micrometer-core = { module = "io.micrometer:micrometer-core" }
@@ -34,14 +34,14 @@ opentelemetry-bom = { module = "io.opentelemetry:opentelemetry-bom", version.ref
 opentelemetry-bom-alpha = { module = "io.opentelemetry:opentelemetry-bom-alpha", version.ref = "opentelemetry-alpha" }
 opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api" }
 opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk" }
-opentelemetry-ktor = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:2.27.0-alpha"
+opentelemetry-ktor = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:2.28.1-alpha"
 
 krat-pack-core = "com.jordi9:krat-pack-core:0.1.1"
 krat-pack-cors = "com.jordi9:krat-pack-cors:0.1.0"
 krat-pack-testlib = "com.jordi9:krat-pack-testlib:1.0.0"
 krat-logging = "com.jordi9:krat-logging:0.1.0"
 krat-logging-testlib = "com.jordi9:krat-logging-testlib:0.1.0"
-krat-otel = "com.jordi9:krat-otel:1.1.0"
+krat-otel = "com.jordi9:krat-otel:1.2.0"
 krat-time = "com.jordi9:krat-time:0.1.0"
 krat-time-testlib = "com.jordi9:krat-time-testlib:0.1.0"
 krat-otel-testlib = "com.jordi9:krat-otel-testlib:0.1.0"
@@ -51,4 +51,4 @@ krat-kogiven = "com.jordi9:krat-kogiven:0.2.0"
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-spotless = "com.diffplug.spotless:8.4.0"
+spotless = "com.diffplug.spotless:8.6.0"
