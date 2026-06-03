@@ -1,6 +1,8 @@
 package com.jordi9.doscomas
 
+import com.jordi9.doscomas.fixture.AccountTable
 import com.jordi9.doscomas.fixture.ItemTable
+import com.jordi9.doscomas.fixture.SpaceTable
 import com.jordi9.kogiven.required
 import io.kotest.core.listeners.AfterEachListener
 import io.kotest.core.test.TestCase
@@ -27,6 +29,8 @@ object InMemoryDBExtension : TempDirectory(
 
 object DeleteTablesExtension : AfterEachListener {
   override suspend fun afterEach(testCase: TestCase, result: TestResult) {
+    AccountTable.deleteAll()
+    SpaceTable.deleteAll()
     ItemTable.deleteAll()
   }
 }

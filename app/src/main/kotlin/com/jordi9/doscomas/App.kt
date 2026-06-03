@@ -5,6 +5,13 @@ import com.jordi9.doscomas.feature.greeting.inbound.HelloHandler
 import com.jordi9.doscomas.feature.item.inbound.CreateItemHandler
 import com.jordi9.doscomas.feature.item.inbound.GetItemHandler
 import com.jordi9.doscomas.feature.item.inbound.ListItemsHandler
+import com.jordi9.doscomas.feature.planning.inbound.CreateAccountHandler
+import com.jordi9.doscomas.feature.planning.inbound.CreateSpaceHandler
+import com.jordi9.doscomas.feature.planning.inbound.GetAccountHandler
+import com.jordi9.doscomas.feature.planning.inbound.GetSpaceHandler
+import com.jordi9.doscomas.feature.planning.inbound.ListAccountsHandler
+import com.jordi9.doscomas.feature.planning.inbound.ListSpacesHandler
+import com.jordi9.doscomas.feature.planning.inbound.PatchAccountHandler
 import com.jordi9.doscomas.shared.inbound.handler.installErrorHandling
 import com.jordi9.doscomas.shared.inbound.health.DatabaseHealthCheck
 import com.jordi9.doscomas.shared.inbound.metrics.MetricsHandler
@@ -14,6 +21,7 @@ import com.jordi9.krat.otel.OpenTelemetryConfig
 import com.jordi9.krat.pack.core.config
 import com.jordi9.krat.pack.core.get
 import com.jordi9.krat.pack.core.healthChecks
+import com.jordi9.krat.pack.core.patch
 import com.jordi9.krat.pack.core.post
 import com.jordi9.krat.pack.cors.CorsConfig
 import com.jordi9.krat.pack.cors.installCors
@@ -65,6 +73,14 @@ fun Application.routes(greeting: GreetingConfig, registry: Registry) {
     get("/api/v1/items", ListItemsHandler(registry))
     get("/api/v1/items/{id}", GetItemHandler(registry))
     post("/api/v1/items", CreateItemHandler(registry))
+
+    get("/api/v1/spaces", ListSpacesHandler(registry))
+    post("/api/v1/spaces", CreateSpaceHandler(registry))
+    get("/api/v1/spaces/{spaceId}", GetSpaceHandler(registry))
+    get("/api/v1/spaces/{spaceId}/accounts", ListAccountsHandler(registry))
+    post("/api/v1/spaces/{spaceId}/accounts", CreateAccountHandler(registry))
+    get("/api/v1/spaces/{spaceId}/accounts/{accountId}", GetAccountHandler(registry))
+    patch("/api/v1/spaces/{spaceId}/accounts/{accountId}", PatchAccountHandler(registry))
 
     get("/metrics", MetricsHandler(registry))
     installHealthChecks(registry)

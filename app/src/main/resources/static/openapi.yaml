@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: Skeleton API
+  title: Dos Comas API
   version: 0.1.0
-  description: Skeleton application built with Ktor and hexagonal architecture
+  description: Dos Comas backend API
 
 servers:
   - url: http://localhost:8080
@@ -90,6 +90,180 @@ paths:
         '404':
           description: Item not found
 
+  /api/v1/spaces:
+    get:
+      summary: List all spaces
+      responses:
+        '200':
+          description: List of spaces
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpaceResponse'
+    post:
+      summary: Create a space
+      description: Accepts a name only; names are trimmed and blank names are rejected.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSpaceRequest'
+      responses:
+        '201':
+          description: Space created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpaceResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/spaces/{spaceId}:
+    get:
+      summary: Get a space by ID
+      parameters:
+        - $ref: '#/components/parameters/SpaceId'
+      responses:
+        '200':
+          description: Space details without embedded accounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpaceResponse'
+        '400':
+          description: Malformed space ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Space not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/spaces/{spaceId}/accounts:
+    get:
+      summary: List accounts in a space
+      parameters:
+        - $ref: '#/components/parameters/SpaceId'
+      responses:
+        '200':
+          description: Accounts scoped to the space
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Malformed space ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Space not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create an account in a space
+      description: Requires name, category, and balance. Money fields must be strings with at most two decimals; currency is EUR only.
+      parameters:
+        - $ref: '#/components/parameters/SpaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Invalid request, money format, category, currency, or ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Space not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/spaces/{spaceId}/accounts/{accountId}:
+    get:
+      summary: Get an account scoped to a space
+      parameters:
+        - $ref: '#/components/parameters/SpaceId'
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        '200':
+          description: Account details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Malformed space or account ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Account not found in this space
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Patch editable account fields
+      description: Missing fields are unchanged; null clears nullable fields and display keys. Server-owned fields are rejected.
+      parameters:
+        - $ref: '#/components/parameters/SpaceId'
+        - $ref: '#/components/parameters/AccountId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchAccountRequest'
+      responses:
+        '200':
+          description: Updated account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Invalid patch body, value, or ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Account not found in this space
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /health:
     get:
       summary: Health check (all checks)
@@ -134,7 +308,31 @@ paths:
           description: Metrics in Prometheus text format
 
 components:
+  parameters:
+    SpaceId:
+      name: spaceId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^sp_[A-Za-z0-9_-]{21}$'
+    AccountId:
+      name: accountId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^acc_[A-Za-z0-9_-]{21}$'
+
   schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+
     ItemResponse:
       type: object
       properties:
@@ -161,3 +359,177 @@ components:
         description:
           type: string
           nullable: true
+
+    SpaceResponse:
+      type: object
+      required:
+        - id
+        - name
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          pattern: '^sp_[A-Za-z0-9_-]{21}$'
+        name:
+          type: string
+          maxLength: 120
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateSpaceRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 120
+
+    AccountResponse:
+      type: object
+      required:
+        - id
+        - spaceId
+        - name
+        - category
+        - balance
+        - monthlyContribution
+        - currency
+        - note
+        - balanceUpdatedAt
+        - createdAt
+        - updatedAt
+        - display
+      properties:
+        id:
+          type: string
+          pattern: '^acc_[A-Za-z0-9_-]{21}$'
+        spaceId:
+          type: string
+          pattern: '^sp_[A-Za-z0-9_-]{21}$'
+        name:
+          type: string
+          maxLength: 120
+        category:
+          $ref: '#/components/schemas/AccountCategory'
+        balance:
+          type: string
+          pattern: '^-?[0-9]+(\\.[0-9]{1,2})?$'
+          description: Decimal string with exactly two places in responses. Negative balances are rejected in requests.
+        monthlyContribution:
+          type: string
+          pattern: '^-?[0-9]+(\\.[0-9]{1,2})?$'
+        currency:
+          type: string
+          enum:
+            - EUR
+        note:
+          type: string
+          nullable: true
+          maxLength: 500
+        balanceUpdatedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        display:
+          $ref: '#/components/schemas/AccountDisplay'
+
+    CreateAccountRequest:
+      type: object
+      required:
+        - name
+        - category
+        - balance
+      properties:
+        name:
+          type: string
+          maxLength: 120
+        category:
+          $ref: '#/components/schemas/AccountCategory'
+        balance:
+          type: string
+          description: Non-negative decimal string with 0 to 2 decimal places.
+        monthlyContribution:
+          type: string
+          default: '0.00'
+          description: Decimal string with 0 to 2 decimal places; may be negative.
+        currency:
+          type: string
+          default: EUR
+          enum:
+            - EUR
+        note:
+          type: string
+          nullable: true
+          maxLength: 500
+        display:
+          $ref: '#/components/schemas/AccountDisplay'
+
+    PatchAccountRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          maxLength: 120
+        category:
+          $ref: '#/components/schemas/AccountCategory'
+        balance:
+          type: string
+          description: Non-negative decimal string with 0 to 2 decimal places.
+        monthlyContribution:
+          type: string
+          description: Decimal string with 0 to 2 decimal places; may be negative.
+        currency:
+          type: string
+          enum:
+            - EUR
+        note:
+          type: string
+          nullable: true
+          maxLength: 500
+        display:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/AccountDisplay'
+
+    AccountCategory:
+      type: string
+      enum:
+        - cash
+        - investment
+        - private_pension
+        - real_estate
+        - social_security
+        - other
+
+    AccountDisplay:
+      type: object
+      additionalProperties: false
+      properties:
+        initials:
+          type: string
+          nullable: true
+          maxLength: 8
+        color:
+          type: string
+          nullable: true
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        typeLabel:
+          type: string
+          nullable: true
+          maxLength: 500
+        subtitle:
+          type: string
+          nullable: true
+          maxLength: 500

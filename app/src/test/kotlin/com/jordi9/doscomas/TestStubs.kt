@@ -1,5 +1,6 @@
 package com.jordi9.doscomas
 
+import com.jordi9.doscomas.shared.domain.PublicIdGenerator
 import com.jordi9.doscomas.stub.NotificationClientStub
 import com.jordi9.krat.otel.OpenTelemetryConfig
 import com.jordi9.krat.otel.testlib.OpenTelemetryTestProvider
@@ -12,6 +13,7 @@ import java.time.Instant
 
 class TestStubs(
   val clock: TimeClock = FixedTime(Instant.parse("2006-01-02T15:04:05Z")),
+  val publicIdGenerator: PublicIdGenerator = PublicIdGenerator(seed = 42),
   val notification: NotificationClientStub = NotificationClientStub(),
   val openTelemetry: OpenTelemetryTestProvider =
     OpenTelemetryTestProvider(
@@ -20,6 +22,7 @@ class TestStubs(
 ) {
   fun resetAll() {
     notification.reset()
+    publicIdGenerator.reset()
   }
 }
 

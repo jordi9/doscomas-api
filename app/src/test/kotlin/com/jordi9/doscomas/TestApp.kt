@@ -46,6 +46,7 @@ fun createTestApp(stubs: TestStubs): TestApplication = TestApplication {
           openTelemetry = stubs.openTelemetry.provider.get()
         ),
         timeClock = stubs.clock,
+        publicIdGenerator = stubs.publicIdGenerator,
         meterRegistryProvider = MeterRegistryProvider(),
         openTelemetryProvider = stubs.openTelemetry.provider
       )

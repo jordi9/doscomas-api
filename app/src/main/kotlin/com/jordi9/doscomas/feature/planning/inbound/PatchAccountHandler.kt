@@ -1,0 +1,97 @@
+package com.jordi9.doscomas.feature.planning.inbound
+
+import com.jordi9.doscomas.Registry
+import com.jordi9.doscomas.feature.planning.application.PatchAccountUseCase
+import com.jordi9.doscomas.feature.planning.domain.AccountCategory
+import com.jordi9.doscomas.feature.planning.domain.AccountChanges
+import com.jordi9.doscomas.feature.planning.domain.AccountId
+import com.jordi9.doscomas.feature.planning.domain.DisplayChange
+import com.jordi9.doscomas.feature.planning.domain.Money
+import com.jordi9.doscomas.feature.planning.domain.NullableField
+import com.jordi9.doscomas.feature.planning.domain.SpaceId
+import com.jordi9.krat.pack.core.Handler
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.util.getValue
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+
+class PatchAccountHandler(
+  private val patchAccount: PatchAccountUseCase
+) : Handler {
+  override suspend fun handle(call: ApplicationCall) {
+    val spaceId: String by call.parameters
+    val accountId: String by call.parameters
+    val body = call.receive<JsonObject>()
+    val account = patchAccount(SpaceId(spaceId), AccountId(accountId), body.toAccountChanges())
+    call.respond(account.toResponse())
+  }
+}
+
+private val editableFields = setOf("name", "category", "balance", "monthlyContribution", "currency", "note", "display")
+private val serverOwnedFields = setOf("id", "spaceId", "createdAt", "updatedAt", "balanceUpdatedAt")
+private val displayFields = setOf("initials", "color", "typeLabel", "subtitle")
+
+private fun JsonObject.toAccountChanges(): AccountChanges {
+  rejectUnknownFields(editableFields + serverOwnedFields, "account")
+  rejectServerOwnedFields()
+
+  return AccountChanges(
+    name = optionalString("name"),
+    category = optionalString("category")?.let(AccountCategory::fromApi),
+    balance = optionalString("balance")?.let(Money::parse),
+    monthlyContribution = optionalString("monthlyContribution")?.let(Money::parse),
+    currency = optionalString("currency"),
+    note = nullableString("note"),
+    display = displayChange()
+  )
+}
+
+private fun JsonObject.rejectServerOwnedFields() {
+  val found = keys.firstOrNull { it in serverOwnedFields }
+  require(found == null) { "$found is server-owned" }
+}
+
+private fun JsonObject.rejectUnknownFields(knownFields: Set<String>, owner: String) {
+  val found = keys.firstOrNull { it !in knownFields }
+  require(found == null) { "Unknown $owner field: $found" }
+}
+
+private fun JsonObject.optionalString(field: String): String? {
+  val element = this[field] ?: return null
+  require(element !is JsonNull) { "$field cannot be null" }
+  return element.stringValue(field)
+}
+
+private fun JsonObject.nullableString(field: String): NullableField<String> {
+  val element = this[field] ?: return NullableField.Unchanged
+  if (element is JsonNull) return NullableField.Clear
+  return NullableField.Set(element.stringValue(field))
+}
+
+private fun JsonObject.displayChange(): DisplayChange {
+  val element = this["display"] ?: return DisplayChange.Unchanged
+  if (element is JsonNull) return DisplayChange.Clear
+  require(element is JsonObject) { "display must be an object" }
+  element.rejectUnknownFields(displayFields, "display")
+
+  return DisplayChange.Update(
+    initials = element.nullableString("initials"),
+    color = element.nullableString("color"),
+    typeLabel = element.nullableString("typeLabel"),
+    subtitle = element.nullableString("subtitle")
+  )
+}
+
+private fun JsonElement.stringValue(field: String): String {
+  val primitive = this as? JsonPrimitive
+  require(primitive != null && primitive.isString) { "$field must be a string" }
+  return primitive.content
+}
+
+fun PatchAccountHandler(registry: Registry) = PatchAccountHandler(
+  patchAccount = PatchAccountUseCase(registry)
+)
