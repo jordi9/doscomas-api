@@ -12,6 +12,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-server-netty = { module = "io.ktor:ktor-server-netty-jvm" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host-jvm" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging" }
 ktor-server-metrics-micrometer = { module = "io.ktor:ktor-server-metrics-micrometer" }
 ktor-server-call-id = { module = "io.ktor:ktor-server-call-id" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages" }

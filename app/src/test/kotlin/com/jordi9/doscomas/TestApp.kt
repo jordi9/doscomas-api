@@ -7,6 +7,10 @@ import com.jordi9.krat.jdbi.JdbiProvider
 import com.jordi9.krat.time.TimeClock
 import io.kotest.core.listeners.ProjectListener
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.mergeWith
@@ -57,6 +61,10 @@ fun createTestApp(stubs: TestStubs): TestApplication = TestApplication {
 fun httpClient(): HttpClient = SkeletonTestApp.createClient {
   install(ClientContentNegotiation) {
     json()
+  }
+  install(Logging) {
+    logger = Logger.DEFAULT
+    level = LogLevel.ALL
   }
 }
 

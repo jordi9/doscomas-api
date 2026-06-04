@@ -47,6 +47,7 @@ dependencies {
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.ktor.client.content.negotiation)
+    testImplementation(libs.ktor.client.logging)
     testImplementation(libs.krat.kogiven)
     testImplementation(libs.krat.time.testlib)
     testImplementation(libs.krat.pack.testlib)
