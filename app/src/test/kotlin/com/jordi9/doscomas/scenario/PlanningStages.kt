@@ -12,9 +12,9 @@ import com.jordi9.doscomas.httpClient
 import com.jordi9.doscomas.sharedClock
 import com.jordi9.kogiven.StageContext
 import com.jordi9.kogiven.required
-import com.jordi9.krat.pack.test.JsonItem
 import com.jordi9.krat.pack.test.JsonResponse
 import com.jordi9.krat.pack.test.toJsonResponse
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.client.request.get
@@ -334,7 +334,7 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
       string("balanceUpdatedAt") shouldBe currentTime()
       string("createdAt") shouldBe currentTime()
       string("updatedAt") shouldBe currentTime()
-      obj("display").shouldHaveNoDisplayFields()
+      obj("display").keys.shouldBeEmpty()
     }
   }
 
@@ -361,7 +361,7 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
   }
 
   fun `display is empty`() = apply {
-    ctx.response.obj("display").shouldHaveNoDisplayFields()
+    ctx.response.obj("display").keys.shouldBeEmpty()
   }
 
   fun `display row was deleted`() = apply {
@@ -388,10 +388,3 @@ private suspend fun PlanningContext.postAccount(body: String): HttpResponse =
   }
 
 private fun PlanningContext.currentAccountPath(): String = "/api/v1/spaces/${spaceId.value}/accounts/${accountId.value}"
-
-private fun JsonItem.shouldHaveNoDisplayFields() {
-  stringOrNull("initials") shouldBe null
-  stringOrNull("color") shouldBe null
-  stringOrNull("typeLabel") shouldBe null
-  stringOrNull("subtitle") shouldBe null
-}
