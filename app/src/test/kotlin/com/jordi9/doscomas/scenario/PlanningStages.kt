@@ -3,10 +3,11 @@ package com.jordi9.doscomas.scenario
 import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
 import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
+import com.jordi9.doscomas.fixture.AccountExample
 import com.jordi9.doscomas.fixture.AccountTable
-import com.jordi9.doscomas.fixture.ExampleIds
-import com.jordi9.doscomas.fixture.insertAccount
-import com.jordi9.doscomas.fixture.insertSpace
+import com.jordi9.doscomas.fixture.SpaceExample
+import com.jordi9.doscomas.fixture.SpaceTable
+import com.jordi9.doscomas.fixture.spaceId
 import com.jordi9.doscomas.httpClient
 import com.jordi9.kogiven.StageContext
 import com.jordi9.kogiven.required
@@ -36,57 +37,60 @@ class PlanningContext {
   var status: HttpStatusCode by required()
   var body: String = ""
   var json: JsonElement? = null
-  val spaceIds: MutableList<SpaceId> = mutableListOf()
-  val accountIds: MutableList<AccountId> = mutableListOf()
+  var currentSpaceId: SpaceId by required()
+  var firstSpaceId: SpaceId by required()
+  var secondSpaceId: SpaceId by required()
+  var currentAccountId: AccountId by required()
 }
 
 class GivenPlanning : StageContext<GivenPlanning, PlanningContext>() {
-  fun `no spaces exist`() = apply {
-    // Database is empty by default
-  }
+  fun `no spaces exist`() = apply { }
 
-  fun `a space exists`(name: String) = apply {
-    val row = insertSpace(name = name)
-    ctx.spaceIds.add(row.id)
+  fun `a space exists`() = apply {
+    val row = SpaceTable.insert(SpaceExample())
+    ctx.currentSpaceId = row.id
   }
 
   fun `two spaces exist`() = apply {
-    `a space exists`("First Space")
-    `a space exists`("Second Space")
+    val first = SpaceTable.insert(SpaceExample(name = "First Space"))
+    val second = SpaceTable.insert(SpaceExample(name = "Second Space"))
+    ctx.firstSpaceId = first.id
+    ctx.secondSpaceId = second.id
+    ctx.currentSpaceId = second.id
   }
 
   fun `an account exists in the current space`(name: String, note: String? = null) = apply {
-    val accountNote = note
-    val row = insertAccount(
-      spaceId = ctx.spaceIds.last(),
-      name = name
-    ) {
-      this.note = accountNote
-    }
-    ctx.accountIds.add(row.id)
+    val account = AccountExample(
+      spaceId = ctx.currentSpaceId,
+      name = name,
+      note = note
+    )
+    val row = AccountTable.insert(account)
+    ctx.currentAccountId = row.id
   }
 
   fun `an account exists in the second space`() = apply {
-    val row = insertAccount(
-      spaceId = ctx.spaceIds[1],
+    val account = AccountExample(
+      spaceId = ctx.secondSpaceId,
       name = "Other Cash"
     )
-    ctx.accountIds.add(row.id)
+    val row = AccountTable.insert(account)
+    ctx.currentAccountId = row.id
   }
 
   fun `an account exists with display in the current space`() = apply {
-    val row = insertAccount(
-      spaceId = ctx.spaceIds.last(),
-      name = "Cash"
-    ) {
+    val account = AccountExample(
+      spaceId = ctx.currentSpaceId,
+      name = "Cash",
       display = AccountDisplay(
         initials = "CA",
         color = "#112233",
         typeLabel = "Cash",
         subtitle = "Main account"
       )
-    }
-    ctx.accountIds.add(row.id)
+    )
+    val row = AccountTable.insert(account)
+    ctx.currentAccountId = row.id
   }
 }
 
@@ -95,25 +99,25 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
     ctx.capture(httpClient().get("/api/v1/spaces"))
   }
 
-  suspend fun `creating a space`(name: String) = apply {
+  suspend fun `creating a space`() = apply {
     ctx.capture(
       httpClient().post("/api/v1/spaces") {
         contentType(ContentType.Application.Json)
-        setBody("""{"name":"$name"}""")
+        setBody("""{"name":"FIRE"}""")
       }
     )
     if (ctx.status == HttpStatusCode.Created) {
-      ctx.spaceIds.add(SpaceId(ctx.obj().string("id")))
+      ctx.currentSpaceId = SpaceId(ctx.obj().string("id"))
     }
   }
 
   suspend fun `getting the current space`() = apply {
-    ctx.capture(httpClient().get("/api/v1/spaces/${ctx.spaceIds.last().value}"))
+    ctx.capture(httpClient().get("/api/v1/spaces/${ctx.currentSpaceId.value}"))
   }
 
   suspend fun `creating an account in the current space`() = apply {
     ctx.capture(
-      httpClient().post("/api/v1/spaces/${ctx.spaceIds.last().value}/accounts") {
+      httpClient().post("/api/v1/spaces/${ctx.currentSpaceId.value}/accounts") {
         contentType(ContentType.Application.Json)
         setBody(
           """
@@ -128,12 +132,12 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
       }
     )
     if (ctx.status == HttpStatusCode.Created) {
-      ctx.accountIds.add(AccountId(ctx.obj().string("id")))
+      ctx.currentAccountId = AccountId(ctx.obj().string("id"))
     }
   }
 
   suspend fun `listing accounts in the current space`() = apply {
-    ctx.capture(httpClient().get("/api/v1/spaces/${ctx.spaceIds.last().value}/accounts"))
+    ctx.capture(httpClient().get("/api/v1/spaces/${ctx.currentSpaceId.value}/accounts"))
   }
 
   suspend fun `getting the current account`() = apply {
@@ -142,7 +146,7 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
 
   suspend fun `getting the other space account from the first space`() = apply {
     ctx.capture(
-      httpClient().get("/api/v1/spaces/${ctx.spaceIds.first().value}/accounts/${ctx.accountIds.last().value}")
+      httpClient().get("/api/v1/spaces/${ctx.firstSpaceId.value}/accounts/${ctx.currentAccountId.value}")
     )
   }
 
@@ -216,7 +220,7 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
 
   suspend fun `creating an account in a missing space`() = apply {
     ctx.capture(
-      httpClient().post("/api/v1/spaces/${ExampleIds.spaceId().value}/accounts") {
+      httpClient().post("/api/v1/spaces/${spaceId().value}/accounts") {
         contentType(ContentType.Application.Json)
         setBody("""{"name":"Cash","category":"cash","balance":"1.00"}""")
       }
@@ -257,8 +261,8 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
     ctx.obj().string("id") shouldStartWith "acc_"
   }
 
-  fun `the space has name`(expected: String) = apply {
-    ctx.obj().string("name") shouldBe expected
+  fun `the space has name FIRE`() = apply {
+    ctx.obj().string("name") shouldBe "FIRE"
   }
 
   fun `timestamps are current`() = apply {
@@ -275,11 +279,11 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
   }
 
   fun `the account belongs to the current space`() = apply {
-    ctx.obj().string("spaceId") shouldBe ctx.spaceIds.last().value
+    ctx.obj().string("spaceId") shouldBe ctx.currentSpaceId.value
   }
 
   fun `the listed account belongs to the current space`() = apply {
-    ctx.array().first().jsonObject.string("spaceId") shouldBe ctx.spaceIds.last().value
+    ctx.array().first().jsonObject.string("spaceId") shouldBe ctx.currentSpaceId.value
   }
 
   fun `the account has name`(expected: String) = apply {
@@ -341,7 +345,7 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
   }
 
   fun `display row was deleted`() = apply {
-    AccountTable.displayExists(ctx.accountIds.last()) shouldBe false
+    AccountTable.displayExists(ctx.currentAccountId) shouldBe false
   }
 
   fun `note is null`() = apply {
@@ -365,13 +369,13 @@ private suspend fun PlanningContext.patchCurrentAccount(body: String) {
 }
 
 private suspend fun PlanningContext.postAccount(body: String): HttpResponse =
-  httpClient().post("/api/v1/spaces/${spaceIds.last().value}/accounts") {
+  httpClient().post("/api/v1/spaces/${currentSpaceId.value}/accounts") {
     contentType(ContentType.Application.Json)
     setBody(body)
   }
 
 private fun PlanningContext.currentAccountPath(): String =
-  "/api/v1/spaces/${spaceIds.last().value}/accounts/${accountIds.last().value}"
+  "/api/v1/spaces/${currentSpaceId.value}/accounts/${currentAccountId.value}"
 
 private fun PlanningContext.obj(): JsonObject = json!!.jsonObject
 

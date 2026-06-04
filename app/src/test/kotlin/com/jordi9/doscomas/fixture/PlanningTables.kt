@@ -6,36 +6,9 @@ import com.jordi9.doscomas.jdbi
 import com.jordi9.krat.jdbi.handleSync
 import org.jdbi.v3.core.kotlin.mapTo
 
-data class SpaceRow(
-  val id: SpaceId,
-  val name: String
-)
-
-data class AccountRow(
-  val id: AccountId,
-  val spaceId: SpaceId,
-  val name: String
-)
-
-fun insertSpace(name: String = "Planning Space", build: SpaceExample.() -> Unit = {}): SpaceRow = SpaceTable.insert(
-  SpaceExample(name = name).apply(build)
-)
-
-fun insertAccount(spaceId: SpaceId, name: String = "Cash", build: AccountExample.() -> Unit = {}): AccountRow =
-  AccountTable.insert(
-    AccountExample(spaceId = spaceId, name = name).apply(build)
-  )
-
-fun insertAccount(space: SpaceRow, name: String = "Cash", build: AccountExample.() -> Unit = {}): AccountRow =
-  insertAccount(
-    spaceId = space.id,
-    name = name,
-    build = build
-  )
-
 object SpaceTable {
-  fun insert(example: SpaceExample): SpaceRow {
-    val space = example.domain()
+
+  fun insert(space: SpaceExample): SpaceRow {
     jdbi().handleSync {
       createUpdate(
         """
@@ -60,7 +33,6 @@ object SpaceTable {
 
 object AccountTable {
   fun insert(example: AccountExample): AccountRow {
-    val account = example.domain()
     jdbi().handleSync {
       createUpdate(
         """
@@ -90,34 +62,34 @@ object AccountTable {
             :updatedAt
           )
         """.trimIndent()
-      ).bind("id", account.id.value)
-        .bind("spaceId", account.spaceId.value)
-        .bind("name", account.name)
-        .bind("category", account.category.apiValue)
-        .bind("balanceCents", account.balance.cents)
-        .bind("monthlyContributionCents", account.monthlyContribution.cents)
-        .bind("currency", account.currency)
-        .bind("note", account.note)
-        .bind("balanceUpdatedAt", account.balanceUpdatedAt.toEpochMilli())
-        .bind("createdAt", account.createdAt.toEpochMilli())
-        .bind("updatedAt", account.updatedAt.toEpochMilli())
+      ).bind("id", example.id.value)
+        .bind("spaceId", example.spaceId.value)
+        .bind("name", example.name)
+        .bind("category", example.category.apiValue)
+        .bind("balanceCents", example.balance.cents)
+        .bind("monthlyContributionCents", example.monthlyContribution.cents)
+        .bind("currency", example.currency)
+        .bind("note", example.note)
+        .bind("balanceUpdatedAt", example.balanceUpdatedAt.toEpochMilli())
+        .bind("createdAt", example.createdAt.toEpochMilli())
+        .bind("updatedAt", example.updatedAt.toEpochMilli())
         .execute()
 
-      if (!account.display.isEmpty()) {
+      if (!example.display.isEmpty()) {
         createUpdate(
           """
             INSERT INTO account_displays (account_id, initials, color, type_label, subtitle)
             VALUES (:accountId, :initials, :color, :typeLabel, :subtitle)
           """.trimIndent()
-        ).bind("accountId", account.id.value)
-          .bind("initials", account.display.initials)
-          .bind("color", account.display.color)
-          .bind("typeLabel", account.display.typeLabel)
-          .bind("subtitle", account.display.subtitle)
+        ).bind("accountId", example.id.value)
+          .bind("initials", example.display.initials)
+          .bind("color", example.display.color)
+          .bind("typeLabel", example.display.typeLabel)
+          .bind("subtitle", example.display.subtitle)
           .execute()
       }
     }
-    return AccountRow(id = account.id, spaceId = account.spaceId, name = account.name)
+    return AccountRow(id = example.id, spaceId = example.spaceId, name = example.name)
   }
 
   fun displayExists(accountId: AccountId): Boolean = jdbi().handleSync {
@@ -134,3 +106,7 @@ object AccountTable {
     }
   }
 }
+
+data class SpaceRow(val id: SpaceId, val name: String)
+
+data class AccountRow(val id: AccountId, val spaceId: SpaceId, val name: String)

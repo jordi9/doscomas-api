@@ -13,22 +13,22 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
 
   "create a space" {
     Given.`no spaces exist`()
-    When.`creating a space`("  Retirement  ")
+    When.`creating a space`()
     Then.`a resource was created`()
       .and().`the space id is public`()
-      .and().`the space has name`("Retirement")
+      .and().`the space has name FIRE`()
       .and().`timestamps are current`()
   }
 
   "get a space by ID" {
-    Given.`a space exists`("Retirement")
+    Given.`a space exists`()
     When.`getting the current space`()
     Then.`the response is successful`()
-      .and().`the space has name`("Retirement")
+      .and().`the space has name FIRE`()
   }
 
   "create an account in a space" {
-    Given.`a space exists`("Retirement")
+    Given.`a space exists`()
     When.`creating an account in the current space`()
     Then.`a resource was created`()
       .and().`the account id is public`()
@@ -38,7 +38,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
 
   "list accounts scoped to a space" {
     Given
-      .`a space exists`("Retirement")
+      .`a space exists`()
       .and().`an account exists in the current space`("Cash")
     When.`listing accounts in the current space`()
     Then.`the response is successful`()
@@ -48,7 +48,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
 
   "get account scoped to a space" {
     Given
-      .`a space exists`("Retirement")
+      .`a space exists`()
       .and().`an account exists in the current space`("Cash")
     When.`getting the current account`()
     Then.`the response is successful`()
@@ -66,7 +66,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
 
   "patch core account fields" {
     Given
-      .`a space exists`("Retirement")
+      .`a space exists`()
       .and().`an account exists in the current space`("Cash", note = "old note")
     When.`patching core account fields`()
     Then
@@ -77,7 +77,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
 
   "patch updates balance and balanceUpdatedAt" {
     Given
-      .`a space exists`("Retirement")
+      .`a space exists`()
       .and().`an account exists in the current space`("Cash")
     When.`patching account balance`()
     Then
@@ -88,7 +88,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
 
   "patch display fields" {
     Given
-      .`a space exists`("Retirement")
+      .`a space exists`()
       .and().`an account exists in the current space`("Cash")
     When.`patching account display`()
     Then
@@ -99,7 +99,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
 
   "clear display fields and return empty display" {
     Given
-      .`a space exists`("Retirement")
+      .`a space exists`()
       .and().`an account exists with display in the current space`()
     When.`clearing account display`()
     Then
@@ -110,7 +110,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
 
   "clear nullable note" {
     Given
-      .`a space exists`("Retirement")
+      .`a space exists`()
       .and().`an account exists in the current space`("Cash", note = "clear me")
     When.`clearing account note`()
     Then
@@ -119,19 +119,19 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
   }
 
   "reject invalid money precision" {
-    Given.`a space exists`("Retirement")
+    Given.`a space exists`()
     When.`creating an account with invalid money precision`()
     Then.`the response is bad request`()
   }
 
   "reject negative balance" {
-    Given.`a space exists`("Retirement")
+    Given.`a space exists`()
     When.`creating an account with negative balance`()
     Then.`the response is bad request`()
   }
 
   "reject invalid category" {
-    Given.`a space exists`("Retirement")
+    Given.`a space exists`()
     When.`creating an account with invalid category`()
     Then.`the response is bad request`()
   }
