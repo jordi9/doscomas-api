@@ -1,6 +1,7 @@
 ---
 name: now
-description: Maintain NOW.md as the current-session handoff. Use when the user asks to continue, refresh, or start a new work focus; supports modes: continue, next, and new.
+description: > 
+  Maintain NOW.md as the current-session handoff. Use when the user asks to continue, refresh, or start a new work focus; supports modes: continue, next, and new.
 ---
 
 # NOW Handoff Skill

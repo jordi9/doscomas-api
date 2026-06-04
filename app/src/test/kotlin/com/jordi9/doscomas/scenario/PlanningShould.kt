@@ -37,8 +37,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
   }
 
   "list accounts scoped to a space" {
-    Given
-      .`a space exists`()
+    Given.`a space exists`()
       .and().`an account exists in the current space`("Cash")
     When.`listing accounts in the current space`()
     Then.`the response is successful`()
@@ -47,8 +46,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
   }
 
   "get account scoped to a space" {
-    Given
-      .`a space exists`()
+    Given.`a space exists`()
       .and().`an account exists in the current space`("Cash")
     When.`getting the current account`()
     Then.`the response is successful`()
@@ -76,8 +74,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
   }
 
   "patch updates balance and balanceUpdatedAt" {
-    Given
-      .`a space exists`()
+    Given.`a space exists`()
       .and().`an account exists in the current space`("Cash")
     When.`patching account balance`()
     Then
@@ -87,8 +84,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
   }
 
   "patch display fields" {
-    Given
-      .`a space exists`()
+    Given.`a space exists`()
       .and().`an account exists in the current space`("Cash")
     When.`patching account display`()
     Then
@@ -98,8 +94,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
   }
 
   "clear display fields and return empty display" {
-    Given
-      .`a space exists`()
+    Given.`a space exists`()
       .and().`an account exists with display in the current space`()
     When.`clearing account display`()
     Then
@@ -109,8 +104,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
   }
 
   "clear nullable note" {
-    Given
-      .`a space exists`()
+    Given.`a space exists`()
       .and().`an account exists in the current space`("Cash", note = "clear me")
     When.`clearing account note`()
     Then
