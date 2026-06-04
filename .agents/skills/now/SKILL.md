@@ -1,6 +1,6 @@
 ---
 name: now
-description: > 
+description: >
   Maintain NOW.md as the current-session handoff. Use when the user asks to continue, refresh, or start a new work focus; supports modes: continue, next, and new.
 ---
 
@@ -49,16 +49,24 @@ The `Suggested skills` section should recommend project-relevant skills, for exa
 
 ## Mode: `next`
 
-Use when the current focus remains the same but the handoff only needs a lightweight refresh.
+Use when the current focus remains the same and the handoff should be trimmed to the minimum useful state.
 
-Update `NOW.md` without adding a long fresh-agent summary:
+For `next`, make the smallest possible edit to `NOW.md`:
 
-1. Keep the same current focus.
-2. Refresh immediate next step(s), changed files, and validation status if known.
-3. Keep or lightly update `Suggested skills` if present.
-4. Reference existing artifacts instead of restating them.
+1. Keep/update only `## Current focus`.
+2. Add at most one `## Next` section only when there is a concrete, non-obvious next action that is not already implied by the current focus.
+3. Remove stale rich-handoff sections from earlier `continue` runs when they only repeat committed history, durable artifacts, `AGENTS.md`, or standard validation commands.
 
-Prefer this mode for small progress updates within the same thread of work.
+Do **not** add these sections in `next` mode unless the user explicitly asks for a richer handoff:
+
+- `Fresh-agent summary`
+- `Immediate state`
+- `Relevant durable artifacts`
+- `Suggested skills`
+- `Validation expectation`
+- commit lists or changed-file inventories
+
+Prefer this mode for small progress updates within the same thread of work. The expected result is often just the header plus `## Current focus`.
 
 ## Mode: `new`
 
@@ -74,7 +82,7 @@ Start a planning/grilling session before rewriting `NOW.md`:
 
 ## Suggested `NOW.md` structure
 
-Use this structure unless the existing file has a better one:
+For `continue` and `new`, use this structure unless the existing file has a better one:
 
 ```markdown
 # NOW
@@ -98,4 +106,14 @@ This file is the current-session handoff. Read it after `AGENTS.md` before start
 ...
 ```
 
-For `next`, omit `Fresh-agent summary` if it would only repeat the existing focus.
+For `next`, use the minimal structure:
+
+```markdown
+# NOW
+
+This file is the current-session handoff. Read it after `AGENTS.md` before starting work in this repository.
+
+## Current focus
+
+...
+```
