@@ -67,10 +67,9 @@ class AccountRepository(
       .list()
   }
 
-  suspend fun findByIdAndSpaceId(accountId: AccountId, spaceId: SpaceId): Account? = jdbi.handle {
-    createQuery(accountSelect("WHERE accounts.id = :id AND accounts.space_id = :spaceId"))
+  suspend fun findById(accountId: AccountId): Account? = jdbi.handle {
+    createQuery(accountSelect("WHERE accounts.id = :id"))
       .bind("id", accountId.value)
-      .bind("spaceId", spaceId.value)
       .mapTo<Account>()
       .findOne()
       .orElse(null)

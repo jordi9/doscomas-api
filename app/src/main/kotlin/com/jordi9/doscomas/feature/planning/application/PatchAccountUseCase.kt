@@ -7,7 +7,6 @@ import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.DisplayChange
 import com.jordi9.doscomas.feature.planning.domain.NullableField
 import com.jordi9.doscomas.feature.planning.domain.PlanningResourceNotFoundException
-import com.jordi9.doscomas.feature.planning.domain.SpaceId
 import com.jordi9.doscomas.feature.planning.domain.validBalance
 import com.jordi9.doscomas.feature.planning.domain.validColor
 import com.jordi9.doscomas.feature.planning.domain.validCurrency
@@ -22,8 +21,8 @@ class PatchAccountUseCase(
   private val accounts: AccountRepository,
   private val clock: TimeClock
 ) {
-  suspend operator fun invoke(spaceId: SpaceId, accountId: AccountId, changes: AccountChanges): Account {
-    val account = accounts.findByIdAndSpaceId(accountId, spaceId)
+  suspend operator fun invoke(accountId: AccountId, changes: AccountChanges): Account {
+    val account = accounts.findById(accountId)
       ?: throw PlanningResourceNotFoundException("Account not found: ${accountId.value}")
 
     val updated = account.apply(changes.validated(), clock.now())

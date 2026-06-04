@@ -141,15 +141,8 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
     }
   }
 
-  suspend fun `getting the current account`() = apply {
-    httpClient().get(ctx.currentAccountPath()).let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
-  }
-
-  suspend fun `getting the other space account from the first space`() = apply {
-    httpClient().get("/api/v1/spaces/${ctx.spaceIds.first.value}/accounts/${ctx.accountId.value}").let { response ->
+  suspend fun `getting the current account by ID`() = apply {
+    httpClient().get("/api/v1/accounts/${ctx.accountId.value}").let { response ->
       ctx.response = response.toJsonResponse()
       ctx.status = response.status
     }
@@ -387,4 +380,4 @@ private suspend fun PlanningContext.postAccount(body: String): HttpResponse =
     setBody(body)
   }
 
-private fun PlanningContext.currentAccountPath(): String = "/api/v1/spaces/${spaceId.value}/accounts/${accountId.value}"
+private fun PlanningContext.currentAccountPath(): String = "/api/v1/accounts/${accountId.value}"

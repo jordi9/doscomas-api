@@ -19,6 +19,7 @@ Keep this slice small:
 - `docs/adr/0001-money-storage-and-api-format.md` — store money as cents internally, expose decimal strings in the API.
 - `docs/adr/0002-use-generated-opaque-string-identifiers.md` — generated opaque prefixed IDs.
 - `docs/adr/0003-model-account-display-separately.md` — display details are separate from core account data.
+- `docs/adr/0005-use-direct-account-routes-for-single-account-resources.md` — single-account reads and updates use direct account routes.
 
 ## Routes
 
@@ -32,16 +33,16 @@ POST /api/v1/spaces
 GET  /api/v1/spaces/{spaceId}
 ```
 
-Accounts are always nested under spaces:
+Account list/create operations stay scoped to a space. Single-account reads and updates use the globally unique account ID directly:
 
 ```http
 GET   /api/v1/spaces/{spaceId}/accounts
 POST  /api/v1/spaces/{spaceId}/accounts
-GET   /api/v1/spaces/{spaceId}/accounts/{accountId}
-PATCH /api/v1/spaces/{spaceId}/accounts/{accountId}
+GET   /api/v1/accounts/{accountId}
+PATCH /api/v1/accounts/{accountId}
 ```
 
-Do not implement global `/api/v1/accounts` yet. There is no current/default space until auth exists.
+Do not implement top-level account list/create routes yet. There is no current/default space until auth exists.
 
 ## Package structure
 

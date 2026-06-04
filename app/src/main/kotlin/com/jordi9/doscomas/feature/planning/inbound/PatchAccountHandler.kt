@@ -8,7 +8,6 @@ import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.DisplayChange
 import com.jordi9.doscomas.feature.planning.domain.Money
 import com.jordi9.doscomas.feature.planning.domain.NullableField
-import com.jordi9.doscomas.feature.planning.domain.SpaceId
 import com.jordi9.krat.pack.core.Handler
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
@@ -23,10 +22,9 @@ class PatchAccountHandler(
   private val patchAccount: PatchAccountUseCase
 ) : Handler {
   override suspend fun handle(call: ApplicationCall) {
-    val spaceId: String by call.parameters
     val accountId: String by call.parameters
     val body = call.receive<JsonObject>()
-    val account = patchAccount(SpaceId(spaceId), AccountId(accountId), body.toAccountChanges())
+    val account = patchAccount(AccountId(accountId), body.toAccountChanges())
     call.respond(account.toResponse())
   }
 }

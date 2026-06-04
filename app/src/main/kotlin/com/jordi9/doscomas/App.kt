@@ -79,8 +79,8 @@ fun Application.routes(greeting: GreetingConfig, registry: Registry) {
     get("/api/v1/spaces/{spaceId}", GetSpaceHandler(registry))
     get("/api/v1/spaces/{spaceId}/accounts", ListAccountsHandler(registry))
     post("/api/v1/spaces/{spaceId}/accounts", CreateAccountHandler(registry))
-    get("/api/v1/spaces/{spaceId}/accounts/{accountId}", GetAccountHandler(registry))
-    patch("/api/v1/spaces/{spaceId}/accounts/{accountId}", PatchAccountHandler(registry))
+    get("/api/v1/accounts/{accountId}", GetAccountHandler(registry))
+    patch("/api/v1/accounts/{accountId}", PatchAccountHandler(registry))
 
     get("/metrics", MetricsHandler(registry))
     installHealthChecks(registry)

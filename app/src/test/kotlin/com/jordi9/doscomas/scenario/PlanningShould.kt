@@ -45,21 +45,22 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
       .and().`the listed account belongs to the current space`()
   }
 
-  "get account scoped to a space" {
+  "get account by ID" {
     Given.`a space exists`()
       .and().`an account exists in the current space`("Cash")
-    When.`getting the current account`()
+    When.`getting the current account by ID`()
     Then.`the response is successful`()
       .and().`the account has name`("Cash")
       .and().`the account belongs to the current space`()
   }
 
-  "account in another space returns 404" {
+  "get account by ID from another space" {
     Given
       .`two spaces exist`()
       .and().`an account exists in the second space`()
-    When.`getting the other space account from the first space`()
-    Then.`the response is not found`()
+    When.`getting the current account by ID`()
+    Then.`the response is successful`()
+      .and().`the account belongs to the current space`()
   }
 
   "patch core account fields" {
