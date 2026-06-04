@@ -11,7 +11,9 @@ import com.jordi9.doscomas.fixture.spaceId
 import com.jordi9.doscomas.httpClient
 import com.jordi9.kogiven.StageContext
 import com.jordi9.kogiven.required
-import io.kotest.matchers.collections.shouldBeEmpty
+import com.jordi9.krat.pack.test.JsonItem
+import com.jordi9.krat.pack.test.JsonResponse
+import com.jordi9.krat.pack.test.toJsonResponse
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.client.request.get
@@ -19,28 +21,18 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 
 private const val CURRENT_TIME = "2006-01-02T15:04:05Z"
 
 class PlanningContext {
   var status: HttpStatusCode by required()
-  var body: String = ""
-  var json: JsonElement? = null
-  var currentSpaceId: SpaceId by required()
-  var firstSpaceId: SpaceId by required()
-  var secondSpaceId: SpaceId by required()
-  var currentAccountId: AccountId by required()
+  var response: JsonResponse by required()
+  var spaceId: SpaceId by required()
+  var spaceIds: Pair<SpaceId, SpaceId> by required()
+  var accountId: AccountId by required()
 }
 
 class GivenPlanning : StageContext<GivenPlanning, PlanningContext>() {
@@ -48,39 +40,38 @@ class GivenPlanning : StageContext<GivenPlanning, PlanningContext>() {
 
   fun `a space exists`() = apply {
     val row = SpaceTable.insert(SpaceExample())
-    ctx.currentSpaceId = row.id
+    ctx.spaceId = row.id
   }
 
   fun `two spaces exist`() = apply {
     val first = SpaceTable.insert(SpaceExample(name = "First Space"))
     val second = SpaceTable.insert(SpaceExample(name = "Second Space"))
-    ctx.firstSpaceId = first.id
-    ctx.secondSpaceId = second.id
-    ctx.currentSpaceId = second.id
+    ctx.spaceIds = (first.id to second.id)
+    ctx.spaceId = second.id
   }
 
   fun `an account exists in the current space`(name: String, note: String? = null) = apply {
     val account = AccountExample(
-      spaceId = ctx.currentSpaceId,
+      spaceId = ctx.spaceId,
       name = name,
       note = note
     )
     val row = AccountTable.insert(account)
-    ctx.currentAccountId = row.id
+    ctx.accountId = row.id
   }
 
   fun `an account exists in the second space`() = apply {
     val account = AccountExample(
-      spaceId = ctx.secondSpaceId,
+      spaceId = ctx.spaceIds.second,
       name = "Other Cash"
     )
     val row = AccountTable.insert(account)
-    ctx.currentAccountId = row.id
+    ctx.accountId = row.id
   }
 
   fun `an account exists with display in the current space`() = apply {
     val account = AccountExample(
-      spaceId = ctx.currentSpaceId,
+      spaceId = ctx.spaceId,
       name = "Cash",
       display = AccountDisplay(
         initials = "CA",
@@ -90,64 +81,79 @@ class GivenPlanning : StageContext<GivenPlanning, PlanningContext>() {
       )
     )
     val row = AccountTable.insert(account)
-    ctx.currentAccountId = row.id
+    ctx.accountId = row.id
   }
 }
 
 class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
   suspend fun `listing spaces`() = apply {
-    ctx.capture(httpClient().get("/api/v1/spaces"))
+    httpClient().get("/api/v1/spaces").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `creating a space`() = apply {
-    ctx.capture(
-      httpClient().post("/api/v1/spaces") {
-        contentType(ContentType.Application.Json)
-        setBody("""{"name":"FIRE"}""")
+    httpClient().post("/api/v1/spaces") {
+      contentType(ContentType.Application.Json)
+      setBody("""{"name":"FIRE"}""")
+    }.let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+      if (ctx.status == HttpStatusCode.Created) {
+        ctx.spaceId = SpaceId(ctx.response.string("id"))
       }
-    )
-    if (ctx.status == HttpStatusCode.Created) {
-      ctx.currentSpaceId = SpaceId(ctx.obj().string("id"))
     }
   }
 
   suspend fun `getting the current space`() = apply {
-    ctx.capture(httpClient().get("/api/v1/spaces/${ctx.currentSpaceId.value}"))
+    httpClient().get("/api/v1/spaces/${ctx.spaceId.value}").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `creating an account in the current space`() = apply {
-    ctx.capture(
-      httpClient().post("/api/v1/spaces/${ctx.currentSpaceId.value}/accounts") {
-        contentType(ContentType.Application.Json)
-        setBody(
-          """
-            {
-              "name": "Cash",
-              "category": "cash",
-              "balance": "8420",
-              "note": "Main cash account"
-            }
-          """.trimIndent()
-        )
+    httpClient().post("/api/v1/spaces/${ctx.spaceId.value}/accounts") {
+      contentType(ContentType.Application.Json)
+      setBody(
+        """
+          {
+            "name": "Cash",
+            "category": "cash",
+            "balance": "8420",
+            "note": "Main cash account"
+          }
+        """.trimIndent()
+      )
+    }.let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+      if (ctx.status == HttpStatusCode.Created) {
+        ctx.accountId = AccountId(ctx.response.string("id"))
       }
-    )
-    if (ctx.status == HttpStatusCode.Created) {
-      ctx.currentAccountId = AccountId(ctx.obj().string("id"))
     }
   }
 
   suspend fun `listing accounts in the current space`() = apply {
-    ctx.capture(httpClient().get("/api/v1/spaces/${ctx.currentSpaceId.value}/accounts"))
+    httpClient().get("/api/v1/spaces/${ctx.spaceId.value}/accounts").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `getting the current account`() = apply {
-    ctx.capture(httpClient().get(ctx.currentAccountPath()))
+    httpClient().get(ctx.currentAccountPath()).let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `getting the other space account from the first space`() = apply {
-    ctx.capture(
-      httpClient().get("/api/v1/spaces/${ctx.firstSpaceId.value}/accounts/${ctx.currentAccountId.value}")
-    )
+    httpClient().get("/api/v1/spaces/${ctx.spaceIds.first.value}/accounts/${ctx.accountId.value}").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `patching core account fields`() = apply {
@@ -161,11 +167,17 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
           "note": "updated note"
         }
       """.trimIndent()
-    )
+    ).let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `patching account balance`() = apply {
-    ctx.patchCurrentAccount("""{"balance":"200.50"}""")
+    ctx.patchCurrentAccount("""{"balance":"200.50"}""").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `patching account display`() = apply {
@@ -180,7 +192,10 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
           }
         }
       """.trimIndent()
-    )
+    ).let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `clearing account display`() = apply {
@@ -195,36 +210,55 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
           }
         }
       """.trimIndent()
-    )
+    ).let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `clearing account note`() = apply {
-    ctx.patchCurrentAccount("""{"note":null}""")
+    ctx.patchCurrentAccount("""{"note":null}""").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `creating an account with invalid money precision`() = apply {
-    ctx.capture(ctx.postAccount("""{"name":"Cash","category":"cash","balance":"1.001"}"""))
+    ctx.postAccount("""{"name":"Cash","category":"cash","balance":"1.001"}""").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `creating an account with negative balance`() = apply {
-    ctx.capture(ctx.postAccount("""{"name":"Cash","category":"cash","balance":"-1.00"}"""))
+    ctx.postAccount("""{"name":"Cash","category":"cash","balance":"-1.00"}""").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `creating an account with invalid category`() = apply {
-    ctx.capture(ctx.postAccount("""{"name":"Cash","category":"invalid","balance":"1.00"}"""))
+    ctx.postAccount("""{"name":"Cash","category":"invalid","balance":"1.00"}""").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `getting a space with invalid id`() = apply {
-    ctx.capture(httpClient().get("/api/v1/spaces/not-a-space"))
+    httpClient().get("/api/v1/spaces/not-a-space").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 
   suspend fun `creating an account in a missing space`() = apply {
-    ctx.capture(
-      httpClient().post("/api/v1/spaces/${spaceId().value}/accounts") {
-        contentType(ContentType.Application.Json)
-        setBody("""{"name":"Cash","category":"cash","balance":"1.00"}""")
-      }
-    )
+    httpClient().post("/api/v1/spaces/${spaceId().value}/accounts") {
+      contentType(ContentType.Application.Json)
+      setBody("""{"name":"Cash","category":"cash","balance":"1.00"}""")
+    }.let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
   }
 }
 
@@ -246,94 +280,81 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
   }
 
   fun `no resources are returned`() = apply {
-    ctx.array().size shouldBe 0
+    ctx.response.isEmpty() shouldBe true
   }
 
   fun `one resource is returned`() = apply {
-    ctx.array().size shouldBe 1
+    ctx.response.size shouldBe 1
   }
 
   fun `the space id is public`() = apply {
-    ctx.obj().string("id") shouldStartWith "sp_"
+    ctx.response.string("id") shouldStartWith "sp_"
   }
 
   fun `the account id is public`() = apply {
-    ctx.obj().string("id") shouldStartWith "acc_"
+    ctx.response.string("id") shouldStartWith "acc_"
   }
 
   fun `the space has name FIRE`() = apply {
-    ctx.obj().string("name") shouldBe "FIRE"
+    ctx.response.string("name") shouldBe "FIRE"
   }
 
   fun `timestamps are current`() = apply {
-    ctx.obj().string("createdAt") shouldBe CURRENT_TIME
-    ctx.obj().string("updatedAt") shouldBe CURRENT_TIME
+    ctx.response.string("createdAt") shouldBe CURRENT_TIME
+    ctx.response.string("updatedAt") shouldBe CURRENT_TIME
   }
 
   fun `updated at is current`() = apply {
-    ctx.obj().string("updatedAt") shouldBe CURRENT_TIME
+    ctx.response.string("updatedAt") shouldBe CURRENT_TIME
   }
 
   fun `balance updated at is current`() = apply {
-    ctx.obj().string("balanceUpdatedAt") shouldBe CURRENT_TIME
+    ctx.response.string("balanceUpdatedAt") shouldBe CURRENT_TIME
   }
 
   fun `the account belongs to the current space`() = apply {
-    ctx.obj().string("spaceId") shouldBe ctx.currentSpaceId.value
+    ctx.response.string("spaceId") shouldBe ctx.spaceId.value
   }
 
   fun `the listed account belongs to the current space`() = apply {
-    ctx.array().first().jsonObject.string("spaceId") shouldBe ctx.currentSpaceId.value
+    ctx.response.items().first().string("spaceId") shouldBe ctx.spaceId.value
   }
 
   fun `the account has name`(expected: String) = apply {
-    ctx.obj().string("name") shouldBe expected
+    ctx.response.string("name") shouldBe expected
   }
 
   fun `the account has create defaults`() = apply {
-    val account = ctx.obj()
-    account.keys shouldBe setOf(
-      "id",
-      "spaceId",
-      "name",
-      "category",
-      "balance",
-      "monthlyContribution",
-      "currency",
-      "note",
-      "balanceUpdatedAt",
-      "createdAt",
-      "updatedAt",
-      "display"
-    )
-    account.string("name") shouldBe "Cash"
-    account.string("category") shouldBe "cash"
-    account.string("balance") shouldBe "8420.00"
-    account.string("monthlyContribution") shouldBe "0.00"
-    account.string("currency") shouldBe "EUR"
-    account.stringOrNull("note") shouldBe "Main cash account"
-    account.string("balanceUpdatedAt") shouldBe CURRENT_TIME
-    account.string("createdAt") shouldBe CURRENT_TIME
-    account.string("updatedAt") shouldBe CURRENT_TIME
-    account.obj("display").keys.shouldBeEmpty()
+    with(ctx.response) {
+      string("name") shouldBe "Cash"
+      string("category") shouldBe "cash"
+      string("balance") shouldBe "8420.00"
+      string("monthlyContribution") shouldBe "0.00"
+      string("currency") shouldBe "EUR"
+      stringOrNull("note") shouldBe "Main cash account"
+      string("balanceUpdatedAt") shouldBe CURRENT_TIME
+      string("createdAt") shouldBe CURRENT_TIME
+      string("updatedAt") shouldBe CURRENT_TIME
+      obj("display").shouldHaveNoDisplayFields()
+    }
   }
 
   fun `core account fields were patched`() = apply {
-    val account = ctx.obj()
-    account.string("name") shouldBe "Updated Cash"
-    account.string("category") shouldBe "investment"
-    account.string("monthlyContribution") shouldBe "-353.00"
-    account.string("currency") shouldBe "EUR"
-    account.stringOrNull("note") shouldBe "updated note"
+    with(ctx.response) {
+      string("name") shouldBe "Updated Cash"
+      string("category") shouldBe "investment"
+      string("monthlyContribution") shouldBe "-353.00"
+      string("currency") shouldBe "EUR"
+      stringOrNull("note") shouldBe "updated note"
+    }
   }
 
   fun `balance was patched`() = apply {
-    ctx.obj().string("balance") shouldBe "200.50"
+    ctx.response.string("balance") shouldBe "200.50"
   }
 
   fun `display fields were patched`() = apply {
-    val display = ctx.obj().obj("display")
-    display.keys shouldBe setOf("initials", "color", "typeLabel", "subtitle")
+    val display = ctx.response.obj("display")
     display.string("initials") shouldBe "IN"
     display.string("color") shouldBe "#ABCDEF"
     display.string("typeLabel") shouldBe "Investment"
@@ -341,52 +362,35 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
   }
 
   fun `display is empty`() = apply {
-    ctx.obj().obj("display").keys.shouldBeEmpty()
+    ctx.response.obj("display").shouldHaveNoDisplayFields()
   }
 
   fun `display row was deleted`() = apply {
-    AccountTable.displayExists(ctx.currentAccountId) shouldBe false
+    AccountTable.displayExists(ctx.accountId) shouldBe false
   }
 
   fun `note is null`() = apply {
-    ctx.obj().stringOrNull("note") shouldBe null
+    ctx.response.stringOrNull("note") shouldBe null
   }
 }
 
-private suspend fun PlanningContext.capture(response: HttpResponse) {
-  status = response.status
-  body = response.bodyAsText()
-  json = if (body.isBlank()) null else Json.parseToJsonElement(body)
-}
-
-private suspend fun PlanningContext.patchCurrentAccount(body: String) {
-  capture(
-    httpClient().patch(currentAccountPath()) {
-      contentType(ContentType.Application.Json)
-      setBody(body)
-    }
-  )
-}
-
-private suspend fun PlanningContext.postAccount(body: String): HttpResponse =
-  httpClient().post("/api/v1/spaces/${currentSpaceId.value}/accounts") {
+private suspend fun PlanningContext.patchCurrentAccount(body: String): HttpResponse =
+  httpClient().patch(currentAccountPath()) {
     contentType(ContentType.Application.Json)
     setBody(body)
   }
 
-private fun PlanningContext.currentAccountPath(): String =
-  "/api/v1/spaces/${currentSpaceId.value}/accounts/${currentAccountId.value}"
+private suspend fun PlanningContext.postAccount(body: String): HttpResponse =
+  httpClient().post("/api/v1/spaces/${spaceId.value}/accounts") {
+    contentType(ContentType.Application.Json)
+    setBody(body)
+  }
 
-private fun PlanningContext.obj(): JsonObject = json!!.jsonObject
+private fun PlanningContext.currentAccountPath(): String = "/api/v1/spaces/${spaceId.value}/accounts/${accountId.value}"
 
-private fun PlanningContext.array() = json!!.jsonArray
-
-private fun JsonObject.string(field: String): String = getValue(field).jsonPrimitive.content
-
-private fun JsonObject.stringOrNull(field: String): String? {
-  val value = this[field] ?: return null
-  if (value is JsonNull) return null
-  return value.jsonPrimitive.content
+private fun JsonItem.shouldHaveNoDisplayFields() {
+  stringOrNull("initials") shouldBe null
+  stringOrNull("color") shouldBe null
+  stringOrNull("typeLabel") shouldBe null
+  stringOrNull("subtitle") shouldBe null
 }
-
-private fun JsonObject.obj(field: String): JsonObject = getValue(field).jsonObject
