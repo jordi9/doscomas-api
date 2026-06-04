@@ -4,9 +4,9 @@ import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
 import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
 import com.jordi9.doscomas.fixture.AccountTable
-import com.jordi9.doscomas.fixture.SpaceTable
-import com.jordi9.doscomas.fixture.accountId
-import com.jordi9.doscomas.fixture.spaceId
+import com.jordi9.doscomas.fixture.ExampleIds
+import com.jordi9.doscomas.fixture.insertAccount
+import com.jordi9.doscomas.fixture.insertSpace
 import com.jordi9.doscomas.httpClient
 import com.jordi9.kogiven.StageContext
 import com.jordi9.kogiven.required
@@ -46,7 +46,7 @@ class GivenPlanning : StageContext<GivenPlanning, PlanningContext>() {
   }
 
   fun `a space exists`(name: String) = apply {
-    val row = SpaceTable.insert(id = ctx.nextSpaceId(), name = name)
+    val row = insertSpace(name = name)
     ctx.spaceIds.add(row.id)
   }
 
@@ -56,18 +56,18 @@ class GivenPlanning : StageContext<GivenPlanning, PlanningContext>() {
   }
 
   fun `an account exists in the current space`(name: String, note: String? = null) = apply {
-    val row = AccountTable.insert(
-      id = ctx.nextAccountId(),
+    val accountNote = note
+    val row = insertAccount(
       spaceId = ctx.spaceIds.last(),
-      name = name,
-      note = note
-    )
+      name = name
+    ) {
+      this.note = accountNote
+    }
     ctx.accountIds.add(row.id)
   }
 
   fun `an account exists in the second space`() = apply {
-    val row = AccountTable.insert(
-      id = ctx.nextAccountId(),
+    val row = insertAccount(
       spaceId = ctx.spaceIds[1],
       name = "Other Cash"
     )
@@ -75,17 +75,17 @@ class GivenPlanning : StageContext<GivenPlanning, PlanningContext>() {
   }
 
   fun `an account exists with display in the current space`() = apply {
-    val row = AccountTable.insert(
-      id = ctx.nextAccountId(),
+    val row = insertAccount(
       spaceId = ctx.spaceIds.last(),
-      name = "Cash",
+      name = "Cash"
+    ) {
       display = AccountDisplay(
         initials = "CA",
         color = "#112233",
         typeLabel = "Cash",
         subtitle = "Main account"
       )
-    )
+    }
     ctx.accountIds.add(row.id)
   }
 }
@@ -216,7 +216,7 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
 
   suspend fun `creating an account in a missing space`() = apply {
     ctx.capture(
-      httpClient().post("/api/v1/spaces/${spaceId('z').value}/accounts") {
+      httpClient().post("/api/v1/spaces/${ExampleIds.spaceId().value}/accounts") {
         contentType(ContentType.Application.Json)
         setBody("""{"name":"Cash","category":"cash","balance":"1.00"}""")
       }
@@ -372,10 +372,6 @@ private suspend fun PlanningContext.postAccount(body: String): HttpResponse =
 
 private fun PlanningContext.currentAccountPath(): String =
   "/api/v1/spaces/${spaceIds.last().value}/accounts/${accountIds.last().value}"
-
-private fun PlanningContext.nextSpaceId(): SpaceId = spaceId(('a'.code + spaceIds.size).toChar())
-
-private fun PlanningContext.nextAccountId(): AccountId = accountId(('a'.code + accountIds.size).toChar())
 
 private fun PlanningContext.obj(): JsonObject = json!!.jsonObject
 
