@@ -2,7 +2,8 @@ package com.jordi9.doscomas.scenario
 
 import com.jordi9.doscomas.NotificationStub
 import com.jordi9.doscomas.feature.item.domain.ItemId
-import com.jordi9.doscomas.fixture.Items
+import com.jordi9.doscomas.fixture.ItemExample
+import com.jordi9.doscomas.fixture.ItemTable
 import com.jordi9.doscomas.httpClient
 import com.jordi9.kogiven.StageContext
 import com.jordi9.kogiven.required
@@ -29,7 +30,8 @@ class GivenItem : StageContext<GivenItem, ItemContext>() {
   }
 
   fun `an item exists`(name: String, description: String? = null) = apply {
-    val row = Items.inserted(name = name, description = description)
+    val item = ItemExample(name = name, description = description)
+    val row = ItemTable.insert(item)
     ctx.insertedItemIds.add(row.id)
   }
 }

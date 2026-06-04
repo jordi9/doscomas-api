@@ -4,15 +4,13 @@ import com.jordi9.doscomas.shared.domain.PublicIdGenerator
 import com.jordi9.doscomas.stub.NotificationClientStub
 import com.jordi9.krat.otel.OpenTelemetryConfig
 import com.jordi9.krat.otel.testlib.OpenTelemetryTestProvider
-import com.jordi9.krat.time.FixedTime
 import com.jordi9.krat.time.TimeClock
 import io.kotest.core.listeners.AfterEachListener
 import io.kotest.core.test.TestCase
 import io.kotest.engine.test.TestResult
-import java.time.Instant
 
 class TestStubs(
-  val clock: TimeClock = FixedTime(Instant.parse("2006-01-02T15:04:05Z")),
+  val clock: TimeClock = sharedClock(),
   val publicIdGenerator: PublicIdGenerator = PublicIdGenerator(seed = 42),
   val notification: NotificationClientStub = NotificationClientStub(),
   val openTelemetry: OpenTelemetryTestProvider =

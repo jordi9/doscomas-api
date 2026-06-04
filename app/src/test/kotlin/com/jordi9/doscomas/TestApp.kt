@@ -4,6 +4,7 @@ import com.jordi9.doscomas.feature.greeting.inbound.GreetingConfig
 import com.jordi9.doscomas.shared.outbound.metrics.MeterRegistryProvider
 import com.jordi9.krat.jdbi.DatabaseConfig
 import com.jordi9.krat.jdbi.JdbiProvider
+import com.jordi9.krat.time.FixedTime
 import com.jordi9.krat.time.TimeClock
 import io.kotest.core.listeners.ProjectListener
 import io.ktor.client.HttpClient
@@ -15,6 +16,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.mergeWith
 import io.ktor.server.testing.TestApplication
+import java.time.Instant
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 
 val SkeletonTestApp = createTestApp(stubs = Stubs)
@@ -68,7 +70,7 @@ fun httpClient(): HttpClient = SkeletonTestApp.createClient {
   }
 }
 
-fun sharedClock(): TimeClock = Stubs.clock
+fun sharedClock(): TimeClock = SharedClock.value
 
 object SkeletonTestAppExtension : ProjectListener {
   override suspend fun beforeProject() {
@@ -78,6 +80,10 @@ object SkeletonTestAppExtension : ProjectListener {
   override suspend fun afterProject() {
     SkeletonTestApp.stop()
   }
+}
+
+private object SharedClock {
+  val value = FixedTime(Instant.parse("2006-01-02T15:04:05Z"))
 }
 
 private fun defaultConfig() = ApplicationConfig("application.conf")

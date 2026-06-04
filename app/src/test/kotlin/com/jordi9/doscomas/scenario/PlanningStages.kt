@@ -9,6 +9,7 @@ import com.jordi9.doscomas.fixture.SpaceExample
 import com.jordi9.doscomas.fixture.SpaceTable
 import com.jordi9.doscomas.fixture.spaceId
 import com.jordi9.doscomas.httpClient
+import com.jordi9.doscomas.sharedClock
 import com.jordi9.kogiven.StageContext
 import com.jordi9.kogiven.required
 import com.jordi9.krat.pack.test.JsonItem
@@ -24,8 +25,6 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-
-private const val CURRENT_TIME = "2006-01-02T15:04:05Z"
 
 class PlanningContext {
   var status: HttpStatusCode by required()
@@ -300,16 +299,16 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
   }
 
   fun `timestamps are current`() = apply {
-    ctx.response.string("createdAt") shouldBe CURRENT_TIME
-    ctx.response.string("updatedAt") shouldBe CURRENT_TIME
+    ctx.response.string("createdAt") shouldBe currentTime()
+    ctx.response.string("updatedAt") shouldBe currentTime()
   }
 
   fun `updated at is current`() = apply {
-    ctx.response.string("updatedAt") shouldBe CURRENT_TIME
+    ctx.response.string("updatedAt") shouldBe currentTime()
   }
 
   fun `balance updated at is current`() = apply {
-    ctx.response.string("balanceUpdatedAt") shouldBe CURRENT_TIME
+    ctx.response.string("balanceUpdatedAt") shouldBe currentTime()
   }
 
   fun `the account belongs to the current space`() = apply {
@@ -332,9 +331,9 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
       string("monthlyContribution") shouldBe "0.00"
       string("currency") shouldBe "EUR"
       stringOrNull("note") shouldBe "Main cash account"
-      string("balanceUpdatedAt") shouldBe CURRENT_TIME
-      string("createdAt") shouldBe CURRENT_TIME
-      string("updatedAt") shouldBe CURRENT_TIME
+      string("balanceUpdatedAt") shouldBe currentTime()
+      string("createdAt") shouldBe currentTime()
+      string("updatedAt") shouldBe currentTime()
       obj("display").shouldHaveNoDisplayFields()
     }
   }
@@ -372,6 +371,8 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
   fun `note is null`() = apply {
     ctx.response.stringOrNull("note") shouldBe null
   }
+
+  private fun currentTime(): String = sharedClock().now().toString()
 }
 
 private suspend fun PlanningContext.patchCurrentAccount(body: String): HttpResponse =
