@@ -8,6 +8,10 @@ Doscomas: Kotlin REST API backend using Ktor and hexagonal architecture.
 
 This skill defines how this project works: layer placement, TDD workflow, testing strategy, and patterns. Do not guess or assume - read the skill first.
 
+## Current handoff
+
+Read `NOW.md` after this file before starting work. It captures the current focus and handoff notes for new sessions.
+
 ## Build Commands
 
 ```bash
@@ -21,6 +25,3 @@ This skill defines how this project works: layer placement, TDD workflow, testin
 
 - Update `app/src/main/resources/static/openapi.yaml` when adding/changing handlers or DTOs.
 - Migrations: `app/src/main/resources/db/migration/V{version}__{description}.sql`
-- Kogiven scenario chains: keep `.and()` and the following backticked stage call together, e.g. ``.and().`next assertion`()`` instead of putting `.and()` on its own line.
-- Test spec class declarations: keep the superclass constructor on the same line when it fits, e.g. `class PlanningShould : ScenarioStringSpec<...>({` instead of breaking after `:`.
-- Test fixtures: prefer mutable `*Example` classes as DSL builders for domain-shaped defaults and valid IDs; use `*Row` names for database rows. Keep database side effects in `insert*` helpers / `*Table.insert(example)` adapters, not on the example itself.
