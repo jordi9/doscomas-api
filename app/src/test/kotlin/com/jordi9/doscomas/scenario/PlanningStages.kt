@@ -13,6 +13,7 @@ import com.jordi9.doscomas.sharedClock
 import com.jordi9.kogiven.StageContext
 import com.jordi9.kogiven.required
 import com.jordi9.krat.pack.test.JsonResponse
+import com.jordi9.krat.pack.test.setJsonBody
 import com.jordi9.krat.pack.test.toJsonResponse
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
@@ -20,11 +21,8 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 
 class PlanningContext {
   var status: HttpStatusCode by required()
@@ -94,8 +92,7 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
 
   suspend fun `creating a space`() = apply {
     httpClient().post("/api/v1/spaces") {
-      contentType(ContentType.Application.Json)
-      setBody("""{"name":"FIRE"}""")
+      setJsonBody("""{"name":"FIRE"}""")
     }.let { response ->
       ctx.response = response.toJsonResponse()
       ctx.status = response.status
@@ -114,8 +111,7 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
 
   suspend fun `creating an account in the current space`() = apply {
     httpClient().post("/api/v1/spaces/${ctx.spaceId.value}/accounts") {
-      contentType(ContentType.Application.Json)
-      setBody(
+      setJsonBody(
         """
           {
             "name": "Cash",
@@ -123,7 +119,7 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
             "balance": "8420",
             "note": "Main cash account"
           }
-        """.trimIndent()
+        """
       )
     }.let { response ->
       ctx.response = response.toJsonResponse()
@@ -245,8 +241,7 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
 
   suspend fun `creating an account in a missing space`() = apply {
     httpClient().post("/api/v1/spaces/${spaceId().value}/accounts") {
-      contentType(ContentType.Application.Json)
-      setBody("""{"name":"Cash","category":"cash","balance":"1.00"}""")
+      setJsonBody("""{"name":"Cash","category":"cash","balance":"1.00"}""")
     }.let { response ->
       ctx.response = response.toJsonResponse()
       ctx.status = response.status
@@ -370,14 +365,12 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
 
 private suspend fun PlanningContext.patchCurrentAccount(body: String): HttpResponse =
   httpClient().patch(currentAccountPath()) {
-    contentType(ContentType.Application.Json)
-    setBody(body)
+    setJsonBody(body)
   }
 
 private suspend fun PlanningContext.postAccount(body: String): HttpResponse =
   httpClient().post("/api/v1/spaces/${spaceId.value}/accounts") {
-    contentType(ContentType.Application.Json)
-    setBody(body)
+    setJsonBody(body)
   }
 
 private fun PlanningContext.currentAccountPath(): String = "/api/v1/accounts/${accountId.value}"

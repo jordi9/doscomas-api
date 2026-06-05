@@ -8,15 +8,13 @@ import com.jordi9.doscomas.httpClient
 import com.jordi9.kogiven.StageContext
 import com.jordi9.kogiven.required
 import com.jordi9.krat.pack.test.JsonResponse
+import com.jordi9.krat.pack.test.setJsonBody
 import com.jordi9.krat.pack.test.toJsonResponse
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
 import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 
 class ItemContext {
   var status: HttpStatusCode by required()
@@ -54,8 +52,7 @@ class WhenItem : StageContext<WhenItem, ItemContext>() {
       }
     val response =
       httpClient().post("/api/v1/items") {
-        contentType(ContentType.Application.Json)
-        setBody(body)
+        setJsonBody(body)
       }
     ctx.status = response.status
     if (response.status == HttpStatusCode.Created) {
