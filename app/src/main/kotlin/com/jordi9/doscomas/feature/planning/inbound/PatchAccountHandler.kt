@@ -6,6 +6,7 @@ import com.jordi9.doscomas.feature.planning.domain.AccountChanges
 import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
 import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.Money
+import com.jordi9.doscomas.feature.planning.domain.map
 import com.jordi9.krat.pack.core.Handler
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
@@ -37,7 +38,7 @@ private fun JsonObject.toAccountChanges(): AccountChanges {
     monthlyContribution = stringUpdate("monthlyContribution", Money::parse),
     currency = stringUpdate("currency"),
     note = nullableStringUpdate("note"),
-    display = nullableUpdate("display") { it.displayValue() }
+    display = nullableUpdate("display") { it.displayValue() }.map { it ?: AccountDisplay() }
   )
 }
 

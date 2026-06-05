@@ -66,10 +66,9 @@ data class Account(
       FieldUpdate.Keep -> Unit
 
       is FieldUpdate.Replace -> {
-        val display = displayUpdate.value ?: AccountDisplay()
-        if (next.display != display) {
+        if (next.display != displayUpdate.value) {
           changed = true
-          next = next.copy(display = display)
+          next = next.copy(display = displayUpdate.value)
         }
       }
     }
@@ -85,5 +84,5 @@ data class AccountChanges(
   val monthlyContribution: FieldUpdate<Money>,
   val currency: FieldUpdate<String>,
   val note: FieldUpdate<String?>,
-  val display: FieldUpdate<AccountDisplay?>
+  val display: FieldUpdate<AccountDisplay>
 )

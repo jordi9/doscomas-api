@@ -32,7 +32,7 @@ private fun AccountChanges.validated(): AccountChanges = copy(
   balance = balance.map(::validBalance),
   currency = currency.map(::validCurrency),
   note = note.map { value -> value?.let(::validNote) },
-  display = display.map { value -> value?.let(::validDisplay) }
+  display = display.map(::validDisplay)
 )
 
 fun PatchAccountUseCase(registry: Registry) = PatchAccountUseCase(

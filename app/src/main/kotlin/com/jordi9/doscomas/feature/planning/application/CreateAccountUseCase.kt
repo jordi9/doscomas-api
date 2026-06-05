@@ -54,10 +54,10 @@ data class CreateAccountCommand(
   val name: String,
   val category: AccountCategory,
   val balance: Money,
-  val monthlyContribution: Money = Money(0),
-  val currency: String = "EUR",
-  val note: String? = null,
-  val display: AccountDisplay = AccountDisplay()
+  val monthlyContribution: Money,
+  val currency: String,
+  val note: String?,
+  val display: AccountDisplay
 )
 
 fun CreateAccountUseCase(registry: Registry) = CreateAccountUseCase(
