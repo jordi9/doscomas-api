@@ -1,12 +1,19 @@
 package com.jordi9.doscomas.feature.planning.inbound
 
 import com.jordi9.doscomas.Registry
-import com.jordi9.doscomas.feature.planning.application.PatchAccountUseCase
-import com.jordi9.doscomas.feature.planning.domain.AccountChanges
+import com.jordi9.doscomas.feature.planning.application.AccountUpdateRequest
+import com.jordi9.doscomas.feature.planning.application.UpdateAccountUseCase
+import com.jordi9.doscomas.feature.planning.domain.AccountBalanceUpdate
+import com.jordi9.doscomas.feature.planning.domain.AccountCategoryUpdate
+import com.jordi9.doscomas.feature.planning.domain.AccountCurrencyUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
+import com.jordi9.doscomas.feature.planning.domain.AccountDisplayUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountId
+import com.jordi9.doscomas.feature.planning.domain.AccountMonthlyContributionUpdate
+import com.jordi9.doscomas.feature.planning.domain.AccountNameUpdate
+import com.jordi9.doscomas.feature.planning.domain.AccountNoteUpdate
+import com.jordi9.doscomas.feature.planning.domain.AccountUpdate
 import com.jordi9.doscomas.feature.planning.domain.Money
-import com.jordi9.doscomas.feature.planning.domain.map
 import com.jordi9.krat.pack.core.Handler
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
@@ -14,32 +21,54 @@ import io.ktor.server.response.respond
 import io.ktor.server.util.getValue
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 
 class PatchAccountHandler(
-  private val patchAccount: PatchAccountUseCase
+  private val updateAccount: UpdateAccountUseCase
 ) : Handler {
   override suspend fun handle(call: ApplicationCall) {
     val accountId: String by call.parameters
     val body = call.receive<JsonObject>()
-    val account = patchAccount(AccountId(accountId), body.toAccountChanges())
+    val account = updateAccount(body.toUpdateRequest(AccountId(accountId)))
     call.respond(account.toResponse())
   }
 }
 
-private fun JsonObject.toAccountChanges(): AccountChanges {
+private fun JsonObject.toUpdateRequest(accountId: AccountId): AccountUpdateRequest {
   rejectUnknownFields(EDITABLE_FIELDS, "account")
 
-  return AccountChanges(
-    name = stringUpdate("name"),
-    category = stringUpdate("category", ::toAccountCategory),
-    balance = stringUpdate("balance", Money::parse),
-    monthlyContribution = stringUpdate("monthlyContribution", Money::parse),
-    currency = stringUpdate("currency"),
-    note = nullableStringUpdate("note"),
-    display = nullableUpdate("display") { it.displayValue() }.map { it ?: AccountDisplay() }
+  return AccountUpdateRequest(
+    accountId = accountId,
+    updates = listOfNotNull(
+      stringUpdate("name", ::AccountNameUpdate),
+      stringUpdate("category") { AccountCategoryUpdate(toAccountCategory(it)) },
+      stringUpdate("balance") { AccountBalanceUpdate(Money.parse(it)) },
+      stringUpdate("monthlyContribution") { AccountMonthlyContributionUpdate(Money.parse(it)) },
+      stringUpdate("currency", ::AccountCurrencyUpdate),
+      nullableStringUpdate("note", ::AccountNoteUpdate),
+      displayUpdate()
+    )
   )
+}
+
+private fun JsonObject.stringUpdate(field: String, build: (String) -> AccountUpdate): AccountUpdate? {
+  val element = this[field] ?: return null
+  validateRequest(element !is JsonNull) { "$field cannot be null" }
+  return build(element.stringValue(field))
+}
+
+private fun JsonObject.nullableStringUpdate(field: String, build: (String?) -> AccountUpdate): AccountUpdate? {
+  val element = this[field] ?: return null
+  if (element is JsonNull) return build(null)
+  return build(element.stringValue(field))
+}
+
+private fun JsonObject.displayUpdate(): AccountUpdate? {
+  val element = this["display"] ?: return null
+  if (element is JsonNull) return AccountDisplayUpdate(AccountDisplay())
+  return AccountDisplayUpdate(element.displayValue())
 }
 
 private fun JsonElement.displayValue(): AccountDisplay {
@@ -50,5 +79,5 @@ private fun JsonElement.displayValue(): AccountDisplay {
 private val EDITABLE_FIELDS = setOf("name", "category", "balance", "monthlyContribution", "currency", "note", "display")
 
 fun PatchAccountHandler(registry: Registry) = PatchAccountHandler(
-  patchAccount = PatchAccountUseCase(registry)
+  updateAccount = UpdateAccountUseCase(registry)
 )

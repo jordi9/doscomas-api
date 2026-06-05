@@ -4,6 +4,7 @@ gradlew.bat
 build
 .kotlin
 .idea
+.envrc
 
 logs
 *.db
