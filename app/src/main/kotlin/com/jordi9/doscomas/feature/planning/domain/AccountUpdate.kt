@@ -2,16 +2,18 @@ package com.jordi9.doscomas.feature.planning.domain
 
 sealed interface AccountUpdate
 
-data class AccountNameUpdate(val value: String) : AccountUpdate
+sealed interface AccountCoreUpdate : AccountUpdate
 
-data class AccountCategoryUpdate(val value: AccountCategory) : AccountUpdate
+data class AccountNameUpdate(val value: String) : AccountCoreUpdate
 
-data class AccountBalanceUpdate(val value: Money) : AccountUpdate
+data class AccountCategoryUpdate(val value: AccountCategory) : AccountCoreUpdate
 
-data class AccountMonthlyContributionUpdate(val value: Money) : AccountUpdate
+data class AccountBalanceUpdate(val value: Money) : AccountCoreUpdate
 
-data class AccountCurrencyUpdate(val value: String) : AccountUpdate
+data class AccountMonthlyContributionUpdate(val value: Money) : AccountCoreUpdate
 
-data class AccountNoteUpdate(val value: String?) : AccountUpdate
+data class AccountCurrencyUpdate(val value: String) : AccountCoreUpdate
+
+data class AccountNoteUpdate(val value: String?) : AccountCoreUpdate
 
 data class AccountDisplayUpdate(val value: AccountDisplay) : AccountUpdate
