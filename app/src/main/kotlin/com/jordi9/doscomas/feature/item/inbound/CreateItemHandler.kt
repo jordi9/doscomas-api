@@ -12,17 +12,17 @@ import kotlinx.serialization.Serializable
 class CreateItemHandler(
   private val createItem: CreateItemUseCase
 ) : Handler {
-  @Serializable
-  data class Request(
-    val name: String,
-    val description: String? = null
-  )
-
   override suspend fun handle(call: ApplicationCall) {
     val request = call.receive<Request>()
     val item = createItem(request.name, request.description)
     call.respond(HttpStatusCode.Created, item.toResponse())
   }
+
+  @Serializable
+  data class Request(
+    val name: String,
+    val description: String? = null
+  )
 }
 
 fun CreateItemHandler(registry: Registry) = CreateItemHandler(

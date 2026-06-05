@@ -8,14 +8,14 @@ Handlers live in `inbound/` and implement a consistent pattern:
 
 ```kotlin
 class CreateOrderHandler(private val useCase: CreateOrderUseCase) : Handler {
-  @Serializable data class Request(val items: List<String>)
-  @Serializable data class Response(val id: Long)
-
   override suspend fun handle(call: ApplicationCall) {
     val request = call.receive<Request>()
     val orderId = useCase(request.toDomain())
     call.respond(HttpStatusCode.Created, Response(orderId.value))
   }
+
+  @Serializable data class Request(val items: List<String>)
+  @Serializable data class Response(val id: Long)
 }
 
 // Factory function
@@ -25,6 +25,7 @@ fun CreateOrderHandler(registry: Registry) = CreateOrderHandler(
 ```
 
 **Key points:**
+- Put `handle()` first, then nested DTOs/helpers, so request flow is visible at the top
 - DTOs nested inside handler (unless shared across handlers)
 - Factory function wires dependencies
 - Handler calls use case, never repository directly
@@ -207,4 +208,4 @@ class OrderHandlerTest : StringSpec({
 })
 ```
 
-See [TESTING.md](TESTING.md) for testing patterns.
+See [TESTING.md](./TESTING.md) for testing patterns.

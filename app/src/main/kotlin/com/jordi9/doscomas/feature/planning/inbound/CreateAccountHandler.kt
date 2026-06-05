@@ -18,6 +18,13 @@ import kotlinx.serialization.Serializable
 class CreateAccountHandler(
   private val createAccount: CreateAccountUseCase
 ) : Handler {
+  override suspend fun handle(call: ApplicationCall) {
+    val spaceId: String by call.parameters
+    val request = call.receive<Request>()
+    val account = createAccount(request.toCommand(SpaceId(spaceId)))
+    call.respond(HttpStatusCode.Created, account.toResponse())
+  }
+
   @Serializable
   data class Request(
     val name: String,
@@ -35,13 +42,6 @@ class CreateAccountHandler(
       val typeLabel: String? = null,
       val subtitle: String? = null
     )
-  }
-
-  override suspend fun handle(call: ApplicationCall) {
-    val spaceId: String by call.parameters
-    val request = call.receive<Request>()
-    val account = createAccount(request.toCommand(SpaceId(spaceId)))
-    call.respond(HttpStatusCode.Created, account.toResponse())
   }
 }
 

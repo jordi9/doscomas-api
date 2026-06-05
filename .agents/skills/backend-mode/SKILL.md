@@ -19,9 +19,9 @@ Follow Canon TDD exactly:
 5. Repeat until list empty
 ```
 
-**Before writing tests:** Read [TESTING.md](TESTING.md) for honeycomb model and BDD patterns.
-**Before layer decisions:** Read [HEXAGONAL.md](HEXAGONAL.md) for placement rules.
-**Before setting up DI:** Read [DI.md](DI.md) for Registry and factory patterns.
+**Before writing tests:** Read [TESTING.md](./TESTING.md) for honeycomb model and BDD patterns.
+**Before layer decisions:** Read [HEXAGONAL.md](./HEXAGONAL.md) for placement rules.
+**Before setting up DI:** Read [DI.md](./DI.md) for Registry and factory patterns.
 
 **Commands:**
 ```bash
@@ -65,7 +65,7 @@ Handler (inbound/) → UseCase (application/) → DomainService (domain/) → Re
 | File paths        | `@JvmInline value class AudioPath(val value: Path)`             |
 | Constrained types | `data class Email(val value: String) { init { require(...) } }` |
 
-**Rule:** If two parameters could be swapped by mistake, wrap them. See [HEXAGONAL.md](HEXAGONAL.md) for patterns.
+**Rule:** If two parameters could be swapped by mistake, wrap them. See [HEXAGONAL.md](./HEXAGONAL.md) for patterns.
 
 ### YAGNI Checklist
 
@@ -84,12 +84,12 @@ Before adding code, ask:
 
 | Task                      | Read First                           |
 |---------------------------|--------------------------------------|
-| Writing tests             | [TESTING.md](TESTING.md)             |
-| Layer placement decisions | [HEXAGONAL.md](HEXAGONAL.md)         |
-| Setting up dependencies   | [DI.md](DI.md)                       |
-| Creating handlers/routes  | [KTOR.md](KTOR.md)                   |
-| Adding metrics/health     | [OBSERVABILITY.md](OBSERVABILITY.md) |
-| Kotlin idioms/patterns    | [KOTLIN.md](KOTLIN.md)               |
+| Writing tests             | [TESTING.md](./TESTING.md)             |
+| Layer placement decisions | [HEXAGONAL.md](./HEXAGONAL.md)         |
+| Setting up dependencies   | [DI.md](./DI.md)                       |
+| Creating handlers/routes  | [KTOR.md](./KTOR.md)                   |
+| Adding metrics/health     | [OBSERVABILITY.md](./OBSERVABILITY.md) |
+| Kotlin idioms/patterns    | [KOTLIN.md](./KOTLIN.md)               |
 
 ## Examples
 
@@ -98,14 +98,14 @@ Before adding code, ask:
 ```kotlin
 // inbound/orders/CreateOrderHandler.kt
 class CreateOrderHandler(private val useCase: CreateOrderUseCase) : Handler {
-  @Serializable data class Request(val items: List<String>)
-  @Serializable data class Response(val id: Long)
-
   override suspend fun handle(call: ApplicationCall) {
     val request = call.receive<Request>()
     val orderId = useCase(request.toDomain())
     call.respond(HttpStatusCode.Created, Response(orderId.value))
   }
+
+  @Serializable data class Request(val items: List<String>)
+  @Serializable data class Response(val id: Long)
 }
 
 fun CreateOrderHandler(registry: Registry) = CreateOrderHandler(

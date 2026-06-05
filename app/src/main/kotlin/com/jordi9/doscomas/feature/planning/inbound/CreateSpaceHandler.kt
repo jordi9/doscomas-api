@@ -12,15 +12,13 @@ import kotlinx.serialization.Serializable
 class CreateSpaceHandler(
   private val createSpace: CreateSpaceUseCase
 ) : Handler {
-  @Serializable
-  data class Request(
-    val name: String
-  )
-
   override suspend fun handle(call: ApplicationCall) {
     val request = call.receive<Request>()
     call.respond(HttpStatusCode.Created, createSpace(request.name).toResponse())
   }
+
+  @Serializable
+  data class Request(val name: String)
 }
 
 fun CreateSpaceHandler(registry: Registry) = CreateSpaceHandler(
