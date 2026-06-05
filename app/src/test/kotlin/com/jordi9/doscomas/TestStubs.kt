@@ -1,6 +1,6 @@
 package com.jordi9.doscomas
 
-import com.jordi9.doscomas.shared.domain.NanoId
+import com.jordi9.doscomas.shared.domain.NanoIds
 import com.jordi9.doscomas.stub.NotificationClientStub
 import com.jordi9.krat.otel.OpenTelemetryConfig
 import com.jordi9.krat.otel.testlib.OpenTelemetryTestProvider
@@ -12,7 +12,7 @@ import kotlin.random.Random
 
 class TestStubs(
   val clock: TimeClock = sharedClock(),
-  val nanoId: NanoId = NanoId(Random(42)),
+  val nanoIds: NanoIds = NanoIds(Random(42)),
   val notification: NotificationClientStub = NotificationClientStub(),
   val openTelemetry: OpenTelemetryTestProvider =
     OpenTelemetryTestProvider(

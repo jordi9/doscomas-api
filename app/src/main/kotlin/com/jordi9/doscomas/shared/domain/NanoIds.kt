@@ -4,7 +4,7 @@ import java.security.SecureRandom
 import kotlin.random.Random
 import kotlin.random.asKotlinRandom
 
-class NanoId(
+class NanoIds(
   private val random: Random = SecureRandom().asKotlinRandom(),
   private val size: Int = DEFAULT_SIZE
 ) {

@@ -4,7 +4,7 @@ import com.jordi9.doscomas.feature.item.domain.NotificationClient
 import com.jordi9.doscomas.feature.item.outbound.LogNotificationClient
 import com.jordi9.doscomas.feature.item.outbound.registerItemMappers
 import com.jordi9.doscomas.feature.planning.outbound.registerPlanningMappers
-import com.jordi9.doscomas.shared.domain.NanoId
+import com.jordi9.doscomas.shared.domain.NanoIds
 import com.jordi9.doscomas.shared.outbound.metrics.MeterRegistryProvider
 import com.jordi9.krat.jdbi.DatabaseConfig
 import com.jordi9.krat.jdbi.JdbiProvider
@@ -20,7 +20,7 @@ import org.jdbi.v3.core.Jdbi
 class Registry(
   val notificationClient: NotificationClient,
   val timeClock: TimeClock,
-  val nanoId: NanoId,
+  val nanoIds: NanoIds,
   private val openTelemetryProvider: OpenTelemetryProvider,
   private val meterRegistryProvider: MeterRegistryProvider,
   private val jdbiProvider: JdbiProvider
@@ -55,7 +55,7 @@ fun Registry(database: DatabaseConfig, tracing: OpenTelemetryConfig): Registry {
       meterRegistry = meterRegistryProvider.get()
     ),
     timeClock = SystemTime,
-    nanoId = NanoId(),
+    nanoIds = NanoIds(),
     meterRegistryProvider = meterRegistryProvider,
     openTelemetryProvider = openTelemetryProvider
   )

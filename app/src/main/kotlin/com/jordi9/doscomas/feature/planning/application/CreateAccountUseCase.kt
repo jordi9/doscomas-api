@@ -15,13 +15,13 @@ import com.jordi9.doscomas.feature.planning.domain.validName
 import com.jordi9.doscomas.feature.planning.domain.validNote
 import com.jordi9.doscomas.feature.planning.outbound.AccountRepository
 import com.jordi9.doscomas.feature.planning.outbound.SpaceRepository
-import com.jordi9.doscomas.shared.domain.NanoId
+import com.jordi9.doscomas.shared.domain.NanoIds
 import com.jordi9.krat.time.TimeClock
 
 class CreateAccountUseCase(
   private val spaces: SpaceRepository,
   private val accounts: AccountRepository,
-  private val ids: NanoId,
+  private val ids: NanoIds,
   private val clock: TimeClock
 ) {
   suspend operator fun invoke(command: CreateAccountCommand): Account {
@@ -63,6 +63,6 @@ data class CreateAccountCommand(
 fun CreateAccountUseCase(registry: Registry) = CreateAccountUseCase(
   spaces = SpaceRepository(registry),
   accounts = AccountRepository(registry),
-  ids = registry.nanoId,
+  ids = registry.nanoIds,
   clock = registry.timeClock
 )

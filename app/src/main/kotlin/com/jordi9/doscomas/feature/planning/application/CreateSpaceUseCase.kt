@@ -5,12 +5,12 @@ import com.jordi9.doscomas.feature.planning.domain.Space
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
 import com.jordi9.doscomas.feature.planning.domain.validName
 import com.jordi9.doscomas.feature.planning.outbound.SpaceRepository
-import com.jordi9.doscomas.shared.domain.NanoId
+import com.jordi9.doscomas.shared.domain.NanoIds
 import com.jordi9.krat.time.TimeClock
 
 class CreateSpaceUseCase(
   private val spaces: SpaceRepository,
-  private val ids: NanoId,
+  private val ids: NanoIds,
   private val clock: TimeClock
 ) {
   suspend operator fun invoke(name: String): Space {
@@ -28,6 +28,6 @@ class CreateSpaceUseCase(
 
 fun CreateSpaceUseCase(registry: Registry) = CreateSpaceUseCase(
   spaces = SpaceRepository(registry),
-  ids = registry.nanoId,
+  ids = registry.nanoIds,
   clock = registry.timeClock
 )
