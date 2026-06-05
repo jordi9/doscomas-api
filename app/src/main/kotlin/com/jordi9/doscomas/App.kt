@@ -83,6 +83,7 @@ fun Application.routes(greeting: GreetingConfig, registry: Registry) {
     patch("/api/v1/accounts/{accountId}", PatchAccountHandler(registry))
 
     get("/metrics", MetricsHandler(registry))
+
     installHealthChecks(registry)
 
     route("docs") {
