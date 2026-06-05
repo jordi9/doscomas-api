@@ -1,4 +1,6 @@
 .gradle
+# So tired of windows line endings. Ignore it when the wrapper brings it back
+gradlew.bat 
 build
 .kotlin
 .idea
