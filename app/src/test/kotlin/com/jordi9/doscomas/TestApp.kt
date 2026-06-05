@@ -52,7 +52,7 @@ fun createTestApp(stubs: TestStubs): TestApplication = TestApplication {
           openTelemetry = stubs.openTelemetry.provider.get()
         ),
         timeClock = stubs.clock,
-        publicIdGenerator = stubs.publicIdGenerator,
+        nanoId = stubs.nanoId,
         meterRegistryProvider = MeterRegistryProvider(),
         openTelemetryProvider = stubs.openTelemetry.provider
       )

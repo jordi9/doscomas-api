@@ -1,27 +1,21 @@
 package com.jordi9.doscomas.shared.domain
 
+import java.security.SecureRandom
 import kotlin.random.Random
+import kotlin.random.asKotlinRandom
 
-class PublicIdGenerator(
-  private val seed: Int? = null,
+class NanoId(
+  private val random: Random = SecureRandom().asKotlinRandom(),
   private val size: Int = DEFAULT_SIZE
 ) {
-  private var random: Random = seed?.let { Random(it) } ?: Random.Default
 
-  fun generate(prefix: String): String = prefix + buildString {
+  fun get(prefix: String): String = prefix + buildString {
     repeat(size) {
       append(ALPHABET[random.nextInt(ALPHABET.length)])
     }
   }
 
-  fun reset() {
-    seed?.let { random = Random(it) }
-  }
-
   companion object {
-    private const val DEFAULT_SIZE = 21
-    private const val ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-"
-
     fun isValid(prefix: String, value: String): Boolean {
       val suffix = value.removePrefix(prefix)
       return value.startsWith(prefix) &&
@@ -30,3 +24,6 @@ class PublicIdGenerator(
     }
   }
 }
+
+private const val DEFAULT_SIZE = 21
+private const val ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-"
