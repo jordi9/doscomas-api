@@ -2,10 +2,11 @@
 build
 .kotlin
 .idea
-.claude/settings.local.json
 
 logs
 *.db
+
+NOW.md
 
 # Local config overrides (only main resources)
 app/src/main/resources/application-local.conf
