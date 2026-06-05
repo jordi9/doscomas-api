@@ -1,5 +1,6 @@
 package com.jordi9.doscomas.feature.planning.domain
 
+import com.jordi9.doscomas.shared.domain.validate
 import kotlin.math.absoluteValue
 
 @JvmInline

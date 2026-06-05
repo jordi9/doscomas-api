@@ -1,16 +1,6 @@
 package com.jordi9.doscomas.feature.planning.domain
 
-private val colorPattern = Regex("^#[0-9A-Fa-f]{6}$")
-
-class ValidationException(
-  message: String
-) : Exception(message)
-
-fun validate(condition: Boolean, lazyMessage: () -> String) {
-  if (!condition) {
-    throw ValidationException(lazyMessage())
-  }
-}
+import com.jordi9.doscomas.shared.domain.validate
 
 fun validName(value: String): String {
   val trimmed = value.trim()
@@ -55,3 +45,5 @@ fun validBalance(value: Money): Money {
   validate(value.cents >= 0) { "Balance must be non-negative" }
   return value
 }
+
+private val colorPattern = Regex("^#[0-9A-Fa-f]{6}$")

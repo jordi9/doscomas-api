@@ -4,7 +4,6 @@ import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.domain.Account
 import com.jordi9.doscomas.feature.planning.domain.AccountChanges
 import com.jordi9.doscomas.feature.planning.domain.AccountId
-import com.jordi9.doscomas.feature.planning.domain.PlanningResourceNotFoundException
 import com.jordi9.doscomas.feature.planning.domain.map
 import com.jordi9.doscomas.feature.planning.domain.validBalance
 import com.jordi9.doscomas.feature.planning.domain.validCurrency
@@ -12,6 +11,7 @@ import com.jordi9.doscomas.feature.planning.domain.validDisplay
 import com.jordi9.doscomas.feature.planning.domain.validName
 import com.jordi9.doscomas.feature.planning.domain.validNote
 import com.jordi9.doscomas.feature.planning.outbound.AccountRepository
+import com.jordi9.doscomas.shared.domain.NotFoundException
 import com.jordi9.krat.time.TimeClock
 
 class PatchAccountUseCase(
@@ -20,7 +20,7 @@ class PatchAccountUseCase(
 ) {
   suspend operator fun invoke(accountId: AccountId, changes: AccountChanges): Account {
     val account = accounts.findById(accountId)
-      ?: throw PlanningResourceNotFoundException("Account not found: ${accountId.value}")
+      ?: throw NotFoundException("Account not found: ${accountId.value}")
 
     val updated = account.apply(changes.validated(), clock.now())
     return accounts.update(updated)

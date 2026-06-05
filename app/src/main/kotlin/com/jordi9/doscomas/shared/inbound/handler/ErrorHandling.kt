@@ -1,8 +1,7 @@
 package com.jordi9.doscomas.shared.inbound.handler
 
-import com.jordi9.doscomas.feature.item.domain.ItemNotFoundException
-import com.jordi9.doscomas.feature.planning.domain.PlanningResourceNotFoundException
-import com.jordi9.doscomas.feature.planning.domain.ValidationException
+import com.jordi9.doscomas.shared.domain.InvalidDataException
+import com.jordi9.doscomas.shared.domain.NotFoundException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
@@ -22,9 +21,8 @@ import kotlinx.serialization.SerializationException
 
 fun Application.installErrorHandling() {
   install(StatusPages) {
-    exception<ItemNotFoundException> { call, e -> call.clientError(HttpStatusCode.NotFound, e) }
-    exception<PlanningResourceNotFoundException> { call, e -> call.clientError(HttpStatusCode.NotFound, e) }
-    exception<ValidationException> { call, e -> call.clientError(HttpStatusCode.BadRequest, e) }
+    exception<NotFoundException> { call, e -> call.clientError(HttpStatusCode.NotFound, e) }
+    exception<InvalidDataException> { call, e -> call.clientError(HttpStatusCode.BadRequest, e) }
     exception<ContentTransformationException> { call, e ->
       call.clientError(HttpStatusCode.BadRequest, e, e.requestBodyError())
     }

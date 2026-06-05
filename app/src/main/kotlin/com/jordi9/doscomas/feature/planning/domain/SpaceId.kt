@@ -1,6 +1,7 @@
 package com.jordi9.doscomas.feature.planning.domain
 
 import com.jordi9.doscomas.shared.domain.NanoIds
+import com.jordi9.doscomas.shared.domain.validate
 
 @JvmInline
 value class SpaceId(

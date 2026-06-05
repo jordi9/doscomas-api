@@ -84,64 +84,46 @@ class GivenPlanning : StageContext<GivenPlanning, PlanningContext>() {
 
 class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
   suspend fun `listing spaces`() = apply {
-    httpClient().get("/api/v1/spaces").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.capture(httpClient().get("/api/v1/spaces"))
   }
 
   suspend fun `creating a space`() = apply {
-    httpClient().post("/api/v1/spaces") {
-      jsonBody("""{"name":"FIRE"}""")
-    }.let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-      if (ctx.status == HttpStatusCode.Created) {
-        ctx.spaceId = SpaceId(ctx.response.string("id"))
+    val response = ctx.capture(
+      httpClient().post("/api/v1/spaces") {
+        jsonBody("""{"name":"FIRE"}""")
       }
+    )
+    if (ctx.status == HttpStatusCode.Created) {
+      ctx.spaceId = SpaceId(response.string("id"))
     }
   }
 
   suspend fun `getting the current space`() = apply {
-    httpClient().get("/api/v1/spaces/${ctx.spaceId.value}").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.capture(httpClient().get("/api/v1/spaces/${ctx.spaceId.value}"))
   }
 
   suspend fun `creating an account in the current space`() = apply {
-    httpClient().post("/api/v1/spaces/${ctx.spaceId.value}/accounts") {
-      jsonBody(
-        """
-          {
-            "name": "Cash",
-            "category": "cash",
-            "balance": "8420",
-            "note": "Main cash account"
-          }
-        """
-      )
-    }.let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-      if (ctx.status == HttpStatusCode.Created) {
-        ctx.accountId = AccountId(ctx.response.string("id"))
-      }
+    val response = ctx.postAccount(
+      """
+        {
+          "name": "Cash",
+          "category": "cash",
+          "balance": "8420",
+          "note": "Main cash account"
+        }
+      """.trimIndent()
+    )
+    if (ctx.status == HttpStatusCode.Created) {
+      ctx.accountId = AccountId(response.string("id"))
     }
   }
 
   suspend fun `listing accounts in the current space`() = apply {
-    httpClient().get("/api/v1/spaces/${ctx.spaceId.value}/accounts").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.capture(httpClient().get("/api/v1/spaces/${ctx.spaceId.value}/accounts"))
   }
 
   suspend fun `getting the current account by ID`() = apply {
-    httpClient().get("/api/v1/accounts/${ctx.accountId.value}").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.capture(httpClient().get("/api/v1/accounts/${ctx.accountId.value}"))
   }
 
   suspend fun `patching core account fields`() = apply {
@@ -155,17 +137,11 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
           "note": "updated note"
         }
       """.trimIndent()
-    ).let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    )
   }
 
   suspend fun `patching account balance`() = apply {
-    ctx.patchCurrentAccount("""{"balance":"200.50"}""").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.patchCurrentAccount("""{"balance":"200.50"}""")
   }
 
   suspend fun `patching account display`() = apply {
@@ -180,10 +156,7 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
           }
         }
       """.trimIndent()
-    ).let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    )
   }
 
   suspend fun `patching account display color only`() = apply {
@@ -195,17 +168,11 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
           }
         }
       """.trimIndent()
-    ).let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    )
   }
 
   suspend fun `clearing account display`() = apply {
-    ctx.patchCurrentAccount("""{"display":null}""").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.patchCurrentAccount("""{"display":null}""")
   }
 
   suspend fun `patching account display with unknown field`() = apply {
@@ -218,75 +185,47 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
           }
         }
       """.trimIndent()
-    ).let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    )
   }
 
   suspend fun `patching account name to null`() = apply {
-    ctx.patchCurrentAccount("""{"name":null}""").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.patchCurrentAccount("""{"name":null}""")
   }
 
   suspend fun `clearing account note`() = apply {
-    ctx.patchCurrentAccount("""{"note":null}""").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.patchCurrentAccount("""{"note":null}""")
   }
 
   suspend fun `creating an account with invalid money precision`() = apply {
-    ctx.postAccount("""{"name":"Cash","category":"cash","balance":"1.001"}""").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.postAccount("""{"name":"Cash","category":"cash","balance":"1.001"}""")
   }
 
   suspend fun `creating an account without balance`() = apply {
-    ctx.postAccount("""{"name":"Cash","category":"cash"}""").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.postAccount("""{"name":"Cash","category":"cash"}""")
   }
 
   suspend fun `creating an account with numeric balance`() = apply {
-    ctx.postAccount("""{"name":"Cash","category":"cash","balance":1.00}""").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.postAccount("""{"name":"Cash","category":"cash","balance":1.00}""")
   }
 
   suspend fun `creating an account with negative balance`() = apply {
-    ctx.postAccount("""{"name":"Cash","category":"cash","balance":"-1.00"}""").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.postAccount("""{"name":"Cash","category":"cash","balance":"-1.00"}""")
   }
 
   suspend fun `creating an account with invalid category`() = apply {
-    ctx.postAccount("""{"name":"Cash","category":"invalid","balance":"1.00"}""").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.postAccount("""{"name":"Cash","category":"invalid","balance":"1.00"}""")
   }
 
   suspend fun `getting a space with invalid id`() = apply {
-    httpClient().get("/api/v1/spaces/not-a-space").let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.capture(httpClient().get("/api/v1/spaces/not-a-space"))
   }
 
   suspend fun `creating an account in a missing space`() = apply {
-    httpClient().post("/api/v1/spaces/${spaceId().value}/accounts") {
-      jsonBody("""{"name":"Cash","category":"cash","balance":"1.00"}""")
-    }.let { response ->
-      ctx.response = response.toJsonResponse()
-      ctx.status = response.status
-    }
+    ctx.capture(
+      httpClient().post("/api/v1/spaces/${spaceId().value}/accounts") {
+        jsonBody("""{"name":"Cash","category":"cash","balance":"1.00"}""")
+      }
+    )
   }
 }
 
@@ -418,14 +357,23 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
   private fun currentTime(): String = sharedClock().now().toString()
 }
 
-private suspend fun PlanningContext.patchCurrentAccount(body: String): HttpResponse =
+private suspend fun PlanningContext.capture(response: HttpResponse): JsonResponse {
+  status = response.status
+  this.response = response.toJsonResponse()
+
+  return this.response
+}
+
+private suspend fun PlanningContext.patchCurrentAccount(body: String): JsonResponse = capture(
   httpClient().patch(currentAccountPath()) {
     jsonBody(body)
   }
+)
 
-private suspend fun PlanningContext.postAccount(body: String): HttpResponse =
+private suspend fun PlanningContext.postAccount(body: String): JsonResponse = capture(
   httpClient().post("/api/v1/spaces/${spaceId.value}/accounts") {
     jsonBody(body)
   }
+)
 
 private fun PlanningContext.currentAccountPath(): String = "/api/v1/accounts/${accountId.value}"

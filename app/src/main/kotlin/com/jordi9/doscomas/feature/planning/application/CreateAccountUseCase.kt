@@ -6,7 +6,6 @@ import com.jordi9.doscomas.feature.planning.domain.AccountCategory
 import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
 import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.Money
-import com.jordi9.doscomas.feature.planning.domain.PlanningResourceNotFoundException
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
 import com.jordi9.doscomas.feature.planning.domain.validBalance
 import com.jordi9.doscomas.feature.planning.domain.validCurrency
@@ -16,6 +15,7 @@ import com.jordi9.doscomas.feature.planning.domain.validNote
 import com.jordi9.doscomas.feature.planning.outbound.AccountRepository
 import com.jordi9.doscomas.feature.planning.outbound.SpaceRepository
 import com.jordi9.doscomas.shared.domain.NanoIds
+import com.jordi9.doscomas.shared.domain.NotFoundException
 import com.jordi9.krat.time.TimeClock
 
 class CreateAccountUseCase(
@@ -26,7 +26,7 @@ class CreateAccountUseCase(
 ) {
   suspend operator fun invoke(command: CreateAccountCommand): Account {
     if (!spaces.exists(command.spaceId)) {
-      throw PlanningResourceNotFoundException("Space not found: ${command.spaceId.value}")
+      throw NotFoundException("Space not found: ${command.spaceId.value}")
     }
 
     val now = clock.now()
