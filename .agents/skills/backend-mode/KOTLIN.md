@@ -138,7 +138,7 @@ suspend fun findById(id: OrderId): Order?
 
 ## Extension Functions
 
-Use extension functions for transformations and conversions:
+Use extension functions for transformations and conversions on narrow project types:
 
 ```kotlin
 // Domain to DTO mapping
@@ -148,6 +148,17 @@ fun Order.toResponse() = OrderResponse(id.value, total.amount)
 fun CreateOrderRequest.toDomain() = CreateOrder(items = items.map(::OrderItem))
 ```
 
+Avoid extensions on broad primitives for semantic parsing:
+
+```kotlin
+// GOOD: Explicit mapper function
+internal fun toAccountCategory(value: String): AccountCategory = TODO()
+
+// AVOID: Makes every String look category-aware
+internal fun String.toAccountCategory(): AccountCategory = TODO()
+```
+
 **Placement:**
-- Mapper extensions: Same file as the target type
+- Mapper extensions: Same file as the target type or where used if file-private
+- Primitive/contract mappers: Top-level functions in adapter `Mappers.kt`
 - Utility extensions: Dedicated `Extensions.kt` in the package

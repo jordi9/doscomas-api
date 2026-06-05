@@ -2,6 +2,7 @@ package com.jordi9.doscomas.fixture
 
 import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
+import com.jordi9.doscomas.feature.planning.outbound.AccountCategoryMapper
 import com.jordi9.doscomas.jdbi
 import com.jordi9.krat.jdbi.handleSync
 import org.jdbi.v3.core.kotlin.mapTo
@@ -65,7 +66,7 @@ object AccountTable {
       ).bind("id", example.id.value)
         .bind("spaceId", example.spaceId.value)
         .bind("name", example.name)
-        .bind("category", example.category.apiValue)
+        .bind("category", AccountCategoryMapper.toDatabase(example.category))
         .bind("balanceCents", example.balance.cents)
         .bind("monthlyContributionCents", example.monthlyContribution.cents)
         .bind("currency", example.currency)

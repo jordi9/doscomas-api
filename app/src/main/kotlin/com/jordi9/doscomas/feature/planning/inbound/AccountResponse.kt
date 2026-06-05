@@ -1,6 +1,7 @@
 package com.jordi9.doscomas.feature.planning.inbound
 
 import com.jordi9.doscomas.feature.planning.domain.Account
+import com.jordi9.doscomas.feature.planning.domain.AccountCategory
 import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
 import kotlinx.serialization.Serializable
 
@@ -24,7 +25,7 @@ fun Account.toResponse() = AccountResponse(
   id = id.value,
   spaceId = spaceId.value,
   name = name,
-  category = category.apiValue,
+  category = category.toResponse(),
   balance = balance.toApiString(),
   monthlyContribution = monthlyContribution.toApiString(),
   currency = currency,
@@ -34,6 +35,15 @@ fun Account.toResponse() = AccountResponse(
   updatedAt = updatedAt.toString(),
   display = display.toResponse()
 )
+
+private fun AccountCategory.toResponse(): String = when (this) {
+  AccountCategory.CASH -> "cash"
+  AccountCategory.INVESTMENT -> "investment"
+  AccountCategory.PRIVATE_PENSION -> "private_pension"
+  AccountCategory.REAL_ESTATE -> "real_estate"
+  AccountCategory.SOCIAL_SECURITY -> "social_security"
+  AccountCategory.OTHER -> "other"
+}
 
 private fun AccountDisplay.toResponse(): Map<String, String> = buildMap {
   initials?.let { put("initials", it) }

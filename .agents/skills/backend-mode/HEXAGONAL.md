@@ -25,6 +25,7 @@ NOT outbound/stripe/ (wrong - tech-focused)
 ### Domain (`domain/`)
 - **Contains**: Entities, Value Objects, Domain Services, Ports, Exceptions
 - **Rules**: NO framework dependencies, Pure Kotlin only
+- **No adapter representations**: No `apiValue`, `fromApi`, `toResponse`, database column values, or JSON strings in domain types
 - **Methods**: `suspend fun execute()` for domain services
 - **Exception**: Can depend on metrics classes (infrastructure, not business logic)
 
@@ -36,12 +37,15 @@ NOT outbound/stripe/ (wrong - tech-focused)
 ### Inbound (`inbound/`)
 - **Contains**: Handlers, Request/Response DTOs, Mappers
 - **Rules**: DTOs use `@Serializable`, nested inside handler class
+- **Mappers**: Convert HTTP/JSON contract values to/from domain (`"private_pension"` → `AccountCategory.PRIVATE_PENSION`)
+- **Mapper shape**: Prefer private/local extensions on narrow types (`AccountCategory.toResponse()`) or top-level functions (`toAccountCategory(value)`); avoid extending broad primitives like `String.toAccountCategory()`
 - **Shared DTOs**: Multiple handlers use same DTO? Standalone file is OK
 - **Parameters**: Use Ktor delegation pattern with `import io.ktor.server.util.getValue`
 
 ### Outbound (`outbound/`)
 - **Contains**: Repositories, Clients, Metrics implementations
 - **Rules**: Mirrors domain structure, feature-specific (not centralized)
+- **Mappers**: Convert persistence/external-service representations to/from domain; do not reuse inbound mappers from outbound
 
 ### Configuration Placement
 
@@ -66,6 +70,34 @@ data class OrderResponse(val id: Long, val total: BigDecimal)
 
 // HANDLER: Map domain → DTO
 fun Order.toResponse() = OrderResponse(id.value, total.amount)
+```
+
+Adapter values also stay out of domain:
+
+```kotlin
+// WRONG: API contract leaked into domain
+enum class AccountCategory(val apiValue: String) {
+  CASH("cash");
+
+  companion object {
+    fun fromApi(value: String): AccountCategory = TODO()
+  }
+}
+
+// CORRECT: Domain is just domain language
+enum class AccountCategory {
+  CASH
+}
+
+// INBOUND: API contract mapping lives beside handlers/responses
+internal fun toAccountCategory(value: String): AccountCategory = when (value) {
+  "cash" -> AccountCategory.CASH
+  else -> throw IllegalArgumentException("Invalid account category")
+}
+
+private fun AccountCategory.toResponse(): String = when (this) {
+  AccountCategory.CASH -> "cash"
+}
 ```
 
 See [KTOR.md](KTOR.md) for serialization patterns.
@@ -189,6 +221,9 @@ class VideoNotFoundException(message: String) : Exception(message)
 ```bash
 # Find framework imports in domain
 grep -r "import io\.\|import org\.jdbi\|@Serializable" */domain/
+
+# Find adapter representation leaks in domain
+grep -r "apiValue\|fromApi\|toApi\|fromDb\|toDb\|toResponse" */domain/
 ```
 
 ### Fat Use Cases

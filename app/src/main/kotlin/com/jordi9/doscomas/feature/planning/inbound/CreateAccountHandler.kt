@@ -3,7 +3,6 @@ package com.jordi9.doscomas.feature.planning.inbound
 import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.application.CreateAccountCommand
 import com.jordi9.doscomas.feature.planning.application.CreateAccountUseCase
-import com.jordi9.doscomas.feature.planning.domain.AccountCategory
 import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
 import com.jordi9.doscomas.feature.planning.domain.Money
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
@@ -48,7 +47,7 @@ class CreateAccountHandler(
 private fun CreateAccountHandler.Request.toCommand(spaceId: SpaceId) = CreateAccountCommand(
   spaceId = spaceId,
   name = name,
-  category = AccountCategory.fromApi(category),
+  category = toAccountCategory(category),
   balance = Money.parse(balance),
   monthlyContribution = Money.parse(monthlyContribution),
   currency = currency,

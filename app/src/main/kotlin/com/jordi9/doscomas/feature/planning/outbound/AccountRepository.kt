@@ -2,7 +2,6 @@ package com.jordi9.doscomas.feature.planning.outbound
 
 import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.domain.Account
-import com.jordi9.doscomas.feature.planning.domain.AccountCategory
 import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
 import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.Money
@@ -129,7 +128,7 @@ class AccountRepository(
   private fun <T : SqlStatement<T>> T.bindAccount(account: Account): T = bind("id", account.id.value)
     .bind("spaceId", account.spaceId.value)
     .bind("name", account.name)
-    .bind("category", account.category.apiValue)
+    .bind("category", AccountCategoryMapper.toDatabase(account.category))
     .bind("balanceCents", account.balance.cents)
     .bind("monthlyContributionCents", account.monthlyContribution.cents)
     .bind("currency", account.currency)
@@ -152,7 +151,7 @@ class AccountRowMapper : RowMapper<Account> {
       id = AccountId(rs.getString("id")),
       spaceId = SpaceId(rs.getString("space_id")),
       name = rs.getString("name"),
-      category = AccountCategory.fromApi(rs.getString("category")),
+      category = AccountCategoryMapper.toDomain(rs.getString("category")),
       balance = Money(rs.getLong("balance_cents")),
       monthlyContribution = Money(rs.getLong("monthly_contribution_cents")),
       currency = rs.getString("currency"),

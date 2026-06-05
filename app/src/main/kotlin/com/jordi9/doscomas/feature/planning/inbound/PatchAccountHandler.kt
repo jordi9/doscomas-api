@@ -2,7 +2,6 @@ package com.jordi9.doscomas.feature.planning.inbound
 
 import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.application.PatchAccountUseCase
-import com.jordi9.doscomas.feature.planning.domain.AccountCategory
 import com.jordi9.doscomas.feature.planning.domain.AccountChanges
 import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.DisplayChange
@@ -39,7 +38,7 @@ private fun JsonObject.toAccountChanges(): AccountChanges {
 
   return AccountChanges(
     name = optionalString("name"),
-    category = optionalString("category")?.let(AccountCategory::fromApi),
+    category = optionalString("category")?.let(::toAccountCategory),
     balance = optionalString("balance")?.let(Money::parse),
     monthlyContribution = optionalString("monthlyContribution")?.let(Money::parse),
     currency = optionalString("currency"),
