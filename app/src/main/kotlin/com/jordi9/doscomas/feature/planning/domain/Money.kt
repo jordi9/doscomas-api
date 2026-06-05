@@ -19,11 +19,11 @@ value class Money(
       val negative = value.startsWith("-")
       val unsigned = value.removePrefix("-")
       val parts = unsigned.split('.')
-      require(unsigned.isNotBlank() && parts.size <= 2) { "Invalid money format" }
-      require(parts[0].isNotEmpty() && parts[0].all(Char::isDigit)) { "Invalid money format" }
+      validate(unsigned.isNotBlank() && parts.size <= 2) { "Invalid money format" }
+      validate(parts[0].isNotEmpty() && parts[0].all(Char::isDigit)) { "Invalid money format" }
 
       val decimals = parts.getOrNull(1)
-      require(decimals == null || (decimals.length in 1..2 && decimals.all(Char::isDigit))) {
+      validate(decimals == null || (decimals.length in 1..2 && decimals.all(Char::isDigit))) {
         "Invalid money precision"
       }
 

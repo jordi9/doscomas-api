@@ -13,7 +13,7 @@ import com.jordi9.doscomas.sharedClock
 import com.jordi9.kogiven.StageContext
 import com.jordi9.kogiven.required
 import com.jordi9.krat.pack.test.JsonResponse
-import com.jordi9.krat.pack.test.setJsonBody
+import com.jordi9.krat.pack.test.jsonBody
 import com.jordi9.krat.pack.test.toJsonResponse
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
@@ -92,7 +92,7 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
 
   suspend fun `creating a space`() = apply {
     httpClient().post("/api/v1/spaces") {
-      setJsonBody("""{"name":"FIRE"}""")
+      jsonBody("""{"name":"FIRE"}""")
     }.let { response ->
       ctx.response = response.toJsonResponse()
       ctx.status = response.status
@@ -111,7 +111,7 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
 
   suspend fun `creating an account in the current space`() = apply {
     httpClient().post("/api/v1/spaces/${ctx.spaceId.value}/accounts") {
-      setJsonBody(
+      jsonBody(
         """
           {
             "name": "Cash",
@@ -218,6 +218,20 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
     }
   }
 
+  suspend fun `creating an account without balance`() = apply {
+    ctx.postAccount("""{"name":"Cash","category":"cash"}""").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
+  }
+
+  suspend fun `creating an account with numeric balance`() = apply {
+    ctx.postAccount("""{"name":"Cash","category":"cash","balance":1.00}""").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
+  }
+
   suspend fun `creating an account with negative balance`() = apply {
     ctx.postAccount("""{"name":"Cash","category":"cash","balance":"-1.00"}""").let { response ->
       ctx.response = response.toJsonResponse()
@@ -241,7 +255,7 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
 
   suspend fun `creating an account in a missing space`() = apply {
     httpClient().post("/api/v1/spaces/${spaceId().value}/accounts") {
-      setJsonBody("""{"name":"Cash","category":"cash","balance":"1.00"}""")
+      jsonBody("""{"name":"Cash","category":"cash","balance":"1.00"}""")
     }.let { response ->
       ctx.response = response.toJsonResponse()
       ctx.status = response.status
@@ -264,6 +278,14 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
 
   fun `the response is bad request`() = apply {
     ctx.status shouldBe HttpStatusCode.BadRequest
+  }
+
+  fun `the error is`(expected: String) = apply {
+    ctx.response.string("error") shouldBe expected
+  }
+
+  fun `the error starts with`(expected: String) = apply {
+    ctx.response.string("error") shouldStartWith expected
   }
 
   fun `no resources are returned`() = apply {
@@ -365,12 +387,12 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
 
 private suspend fun PlanningContext.patchCurrentAccount(body: String): HttpResponse =
   httpClient().patch(currentAccountPath()) {
-    setJsonBody(body)
+    jsonBody(body)
   }
 
 private suspend fun PlanningContext.postAccount(body: String): HttpResponse =
   httpClient().post("/api/v1/spaces/${spaceId.value}/accounts") {
-    setJsonBody(body)
+    jsonBody(body)
   }
 
 private fun PlanningContext.currentAccountPath(): String = "/api/v1/accounts/${accountId.value}"

@@ -13,6 +13,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.util.getValue
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonPrimitive
 
 class CreateAccountHandler(
   private val createAccount: CreateAccountUseCase
@@ -28,8 +29,8 @@ class CreateAccountHandler(
   data class Request(
     val name: String,
     val category: String,
-    val balance: String,
-    val monthlyContribution: String = "0.00",
+    val balance: JsonPrimitive,
+    val monthlyContribution: JsonPrimitive = JsonPrimitive("0.00"),
     val currency: String = "EUR",
     val note: String? = null,
     val display: DisplayRequest? = null
@@ -48,8 +49,8 @@ private fun CreateAccountHandler.Request.toCommand(spaceId: SpaceId) = CreateAcc
   spaceId = spaceId,
   name = name,
   category = toAccountCategory(category),
-  balance = Money.parse(balance),
-  monthlyContribution = Money.parse(monthlyContribution),
+  balance = Money.parse(balance.stringValue("balance")),
+  monthlyContribution = Money.parse(monthlyContribution.stringValue("monthlyContribution")),
   currency = currency,
   note = note,
   display = display?.toDomain() ?: AccountDisplay()

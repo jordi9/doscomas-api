@@ -12,10 +12,8 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.util.getValue
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 
 class PatchAccountHandler(
   private val patchAccount: PatchAccountUseCase
@@ -49,18 +47,7 @@ private fun JsonObject.toAccountChanges(): AccountChanges {
 
 private fun JsonObject.rejectServerOwnedFields() {
   val found = keys.firstOrNull { it in serverOwnedFields }
-  require(found == null) { "$found is server-owned" }
-}
-
-private fun JsonObject.rejectUnknownFields(knownFields: Set<String>, owner: String) {
-  val found = keys.firstOrNull { it !in knownFields }
-  require(found == null) { "Unknown $owner field: $found" }
-}
-
-private fun JsonObject.optionalString(field: String): String? {
-  val element = this[field] ?: return null
-  require(element !is JsonNull) { "$field cannot be null" }
-  return element.stringValue(field)
+  validateRequest(found == null) { "$found is server-owned" }
 }
 
 private fun JsonObject.nullableString(field: String): NullableField<String> {
@@ -72,21 +59,15 @@ private fun JsonObject.nullableString(field: String): NullableField<String> {
 private fun JsonObject.displayChange(): DisplayChange {
   val element = this["display"] ?: return DisplayChange.Unchanged
   if (element is JsonNull) return DisplayChange.Clear
-  require(element is JsonObject) { "display must be an object" }
-  element.rejectUnknownFields(displayFields, "display")
+  val display = element as? JsonObject ?: badRequest("display must be an object")
+  display.rejectUnknownFields(displayFields, "display")
 
   return DisplayChange.Update(
-    initials = element.nullableString("initials"),
-    color = element.nullableString("color"),
-    typeLabel = element.nullableString("typeLabel"),
-    subtitle = element.nullableString("subtitle")
+    initials = display.nullableString("initials"),
+    color = display.nullableString("color"),
+    typeLabel = display.nullableString("typeLabel"),
+    subtitle = display.nullableString("subtitle")
   )
-}
-
-private fun JsonElement.stringValue(field: String): String {
-  val primitive = this as? JsonPrimitive
-  require(primitive != null && primitive.isString) { "$field must be a string" }
-  return primitive.content
 }
 
 fun PatchAccountHandler(registry: Registry) = PatchAccountHandler(

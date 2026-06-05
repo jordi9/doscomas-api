@@ -117,29 +117,48 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
     Given.`a space exists`()
     When.`creating an account with invalid money precision`()
     Then.`the response is bad request`()
+      .and().`the error is`("Invalid money precision")
+  }
+
+  "reject missing required account field" {
+    Given.`a space exists`()
+    When.`creating an account without balance`()
+    Then.`the response is bad request`()
+      .and().`the error is`("balance is required")
+  }
+
+  "reject non-string money" {
+    Given.`a space exists`()
+    When.`creating an account with numeric balance`()
+    Then.`the response is bad request`()
+      .and().`the error is`("balance must be a string")
   }
 
   "reject negative balance" {
     Given.`a space exists`()
     When.`creating an account with negative balance`()
     Then.`the response is bad request`()
+      .and().`the error is`("Balance must be non-negative")
   }
 
   "reject invalid category" {
     Given.`a space exists`()
     When.`creating an account with invalid category`()
     Then.`the response is bad request`()
+      .and().`the error is`("Invalid account category")
   }
 
   "reject invalid ID prefix or format" {
     Given.`no spaces exist`()
     When.`getting a space with invalid id`()
     Then.`the response is bad request`()
+      .and().`the error is`("Invalid space ID format")
   }
 
   "reject account creation for missing space" {
     Given.`no spaces exist`()
     When.`creating an account in a missing space`()
     Then.`the response is not found`()
+      .and().`the error starts with`("Space not found: sp_")
   }
 })

@@ -8,7 +8,7 @@ import com.jordi9.doscomas.httpClient
 import com.jordi9.kogiven.StageContext
 import com.jordi9.kogiven.required
 import com.jordi9.krat.pack.test.JsonResponse
-import com.jordi9.krat.pack.test.setJsonBody
+import com.jordi9.krat.pack.test.jsonBody
 import com.jordi9.krat.pack.test.toJsonResponse
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
@@ -52,7 +52,7 @@ class WhenItem : StageContext<WhenItem, ItemContext>() {
       }
     val response =
       httpClient().post("/api/v1/items") {
-        setJsonBody(body)
+        jsonBody(body)
       }
     ctx.status = response.status
     if (response.status == HttpStatusCode.Created) {

@@ -7,7 +7,7 @@ value class SpaceId(
   val value: String
 ) {
   init {
-    require(NanoId.isValid(PREFIX, value)) { "Invalid space ID format" }
+    validate(NanoId.isValid(PREFIX, value)) { "Invalid space ID format" }
   }
 
   companion object {

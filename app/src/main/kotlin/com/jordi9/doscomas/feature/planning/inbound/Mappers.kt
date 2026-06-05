@@ -9,5 +9,5 @@ internal fun toAccountCategory(value: String): AccountCategory = when (value) {
   "real_estate" -> AccountCategory.REAL_ESTATE
   "social_security" -> AccountCategory.SOCIAL_SECURITY
   "other" -> AccountCategory.OTHER
-  else -> throw IllegalArgumentException("Invalid account category")
+  else -> badRequest("Invalid account category")
 }

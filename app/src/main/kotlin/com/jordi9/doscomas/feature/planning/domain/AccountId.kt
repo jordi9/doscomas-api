@@ -7,7 +7,7 @@ value class AccountId(
   val value: String
 ) {
   init {
-    require(NanoId.isValid(PREFIX, value)) { "Invalid account ID format" }
+    validate(NanoId.isValid(PREFIX, value)) { "Invalid account ID format" }
   }
 
   companion object {
