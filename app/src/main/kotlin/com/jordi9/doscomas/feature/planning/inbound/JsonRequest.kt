@@ -2,7 +2,6 @@ package com.jordi9.doscomas.feature.planning.inbound
 
 import io.ktor.server.plugins.BadRequestException
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -13,12 +12,6 @@ fun validateRequest(condition: Boolean, lazyMessage: () -> String) {
   if (!condition) {
     badRequest(lazyMessage())
   }
-}
-
-fun JsonObject.optionalString(field: String): String? {
-  val element = this[field] ?: return null
-  validateRequest(element !is JsonNull) { "$field cannot be null" }
-  return element.stringValue(field)
 }
 
 fun JsonObject.rejectUnknownFields(knownFields: Set<String>, owner: String) {

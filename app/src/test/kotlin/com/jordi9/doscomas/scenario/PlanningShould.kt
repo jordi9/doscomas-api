@@ -94,6 +94,16 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
       .and().`updated at is current`()
   }
 
+  "patch display replaces the whole display object" {
+    Given.`a space exists`()
+      .and().`an account exists with display in the current space`()
+    When.`patching account display color only`()
+    Then
+      .`the response is successful`()
+      .and().`only display color is present`()
+      .and().`updated at is current`()
+  }
+
   "clear display fields and return empty display" {
     Given.`a space exists`()
       .and().`an account exists with display in the current space`()
@@ -102,6 +112,22 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
       .`the response is successful`()
       .and().`display is empty`()
       .and().`display row was deleted`()
+  }
+
+  "reject display with unknown field" {
+    Given.`a space exists`()
+      .and().`an account exists in the current space`("Cash")
+    When.`patching account display with unknown field`()
+    Then.`the response is bad request`()
+      .and().`the error is`("Invalid request body")
+  }
+
+  "reject null for non-null patch field" {
+    Given.`a space exists`()
+      .and().`an account exists in the current space`("Cash")
+    When.`patching account name to null`()
+    Then.`the response is bad request`()
+      .and().`the error is`("name cannot be null")
   }
 
   "clear nullable note" {

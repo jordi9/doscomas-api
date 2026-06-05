@@ -20,11 +20,17 @@ data class Account(
     var changed = false
     var next = this
 
-    fun <T> choose(current: T, proposed: T?): T = if (proposed != null && proposed != current) {
-      changed = true
-      proposed
-    } else {
-      current
+    fun <T> choose(current: T, update: FieldUpdate<T>): T = when (update) {
+      FieldUpdate.Keep -> current
+
+      is FieldUpdate.Replace -> {
+        if (update.value != current) {
+          changed = true
+          update.value
+        } else {
+          current
+        }
+      }
     }
 
     next = next.copy(
@@ -34,46 +40,36 @@ data class Account(
       currency = choose(next.currency, changes.currency)
     )
 
-    changes.balance?.let { proposed ->
-      if (proposed != next.balance) {
-        changed = true
-        next = next.copy(balance = proposed, balanceUpdatedAt = now)
-      }
-    }
+    when (val balanceUpdate = changes.balance) {
+      FieldUpdate.Keep -> Unit
 
-    when (val noteChange = changes.note) {
-      NullableField.Unchanged -> Unit
-
-      NullableField.Clear -> {
-        if (next.note != null) {
+      is FieldUpdate.Replace -> {
+        if (balanceUpdate.value != next.balance) {
           changed = true
-          next = next.copy(note = null)
-        }
-      }
-
-      is NullableField.Set -> {
-        if (next.note != noteChange.value) {
-          changed = true
-          next = next.copy(note = noteChange.value)
+          next = next.copy(balance = balanceUpdate.value, balanceUpdatedAt = now)
         }
       }
     }
 
-    when (val displayChange = changes.display) {
-      DisplayChange.Unchanged -> Unit
+    when (val noteUpdate = changes.note) {
+      FieldUpdate.Keep -> Unit
 
-      DisplayChange.Clear -> {
-        if (!next.display.isEmpty()) {
+      is FieldUpdate.Replace -> {
+        if (next.note != noteUpdate.value) {
           changed = true
-          next = next.copy(display = AccountDisplay())
+          next = next.copy(note = noteUpdate.value)
         }
       }
+    }
 
-      is DisplayChange.Update -> {
-        val proposed = next.display.apply(displayChange)
-        if (proposed != next.display) {
+    when (val displayUpdate = changes.display) {
+      FieldUpdate.Keep -> Unit
+
+      is FieldUpdate.Replace -> {
+        val display = displayUpdate.value ?: AccountDisplay()
+        if (next.display != display) {
           changed = true
-          next = next.copy(display = proposed)
+          next = next.copy(display = display)
         }
       }
     }
@@ -83,45 +79,11 @@ data class Account(
 }
 
 data class AccountChanges(
-  val name: String? = null,
-  val category: AccountCategory? = null,
-  val balance: Money? = null,
-  val monthlyContribution: Money? = null,
-  val currency: String? = null,
-  val note: NullableField<String> = NullableField.Unchanged,
-  val display: DisplayChange = DisplayChange.Unchanged
+  val name: FieldUpdate<String>,
+  val category: FieldUpdate<AccountCategory>,
+  val balance: FieldUpdate<Money>,
+  val monthlyContribution: FieldUpdate<Money>,
+  val currency: FieldUpdate<String>,
+  val note: FieldUpdate<String?>,
+  val display: FieldUpdate<AccountDisplay?>
 )
-
-sealed interface NullableField<out T> {
-  data object Unchanged : NullableField<Nothing>
-
-  data object Clear : NullableField<Nothing>
-
-  data class Set<T>(val value: T) : NullableField<T>
-}
-
-sealed interface DisplayChange {
-  data object Unchanged : DisplayChange
-
-  data object Clear : DisplayChange
-
-  data class Update(
-    val initials: NullableField<String> = NullableField.Unchanged,
-    val color: NullableField<String> = NullableField.Unchanged,
-    val typeLabel: NullableField<String> = NullableField.Unchanged,
-    val subtitle: NullableField<String> = NullableField.Unchanged
-  ) : DisplayChange
-}
-
-private fun AccountDisplay.apply(change: DisplayChange.Update): AccountDisplay = copy(
-  initials = initials.apply(change.initials),
-  color = color.apply(change.color),
-  typeLabel = typeLabel.apply(change.typeLabel),
-  subtitle = subtitle.apply(change.subtitle)
-)
-
-private fun String?.apply(change: NullableField<String>): String? = when (change) {
-  NullableField.Unchanged -> this
-  NullableField.Clear -> null
-  is NullableField.Set -> change.value
-}

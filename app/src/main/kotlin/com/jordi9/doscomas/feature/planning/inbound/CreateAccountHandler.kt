@@ -33,16 +33,8 @@ class CreateAccountHandler(
     val monthlyContribution: JsonPrimitive = JsonPrimitive("0.00"),
     val currency: String = "EUR",
     val note: String? = null,
-    val display: DisplayRequest? = null
-  ) {
-    @Serializable
-    data class DisplayRequest(
-      val initials: String? = null,
-      val color: String? = null,
-      val typeLabel: String? = null,
-      val subtitle: String? = null
-    )
-  }
+    val display: AccountDisplayRequest? = null
+  )
 }
 
 private fun CreateAccountHandler.Request.toCommand(spaceId: SpaceId) = CreateAccountCommand(
@@ -54,13 +46,6 @@ private fun CreateAccountHandler.Request.toCommand(spaceId: SpaceId) = CreateAcc
   currency = currency,
   note = note,
   display = display?.toDomain() ?: AccountDisplay()
-)
-
-private fun CreateAccountHandler.Request.DisplayRequest.toDomain() = AccountDisplay(
-  initials = initials,
-  color = color,
-  typeLabel = typeLabel,
-  subtitle = subtitle
 )
 
 fun CreateAccountHandler(registry: Registry) = CreateAccountHandler(

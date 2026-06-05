@@ -233,7 +233,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
     patch:
       summary: Patch editable account fields
-      description: Missing fields are unchanged; null clears nullable fields and display keys. Server-owned fields are rejected.
+      description: Missing account fields are unchanged. Null clears nullable fields. If supplied, display replaces the whole display object; null clears display.
       parameters:
         - $ref: '#/components/parameters/AccountId'
       requestBody:
@@ -497,6 +497,7 @@ components:
           nullable: true
           maxLength: 500
         display:
+          description: Replaces the whole display object when supplied; null clears display; missing leaves display unchanged.
           nullable: true
           allOf:
             - $ref: '#/components/schemas/AccountDisplay'

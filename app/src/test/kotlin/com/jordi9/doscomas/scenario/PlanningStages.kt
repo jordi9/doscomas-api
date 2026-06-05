@@ -186,19 +186,46 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
     }
   }
 
-  suspend fun `clearing account display`() = apply {
+  suspend fun `patching account display color only`() = apply {
     ctx.patchCurrentAccount(
       """
         {
           "display": {
-            "initials": null,
-            "color": null,
-            "typeLabel": null,
-            "subtitle": null
+            "color": "#ABCDEF"
           }
         }
       """.trimIndent()
     ).let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
+  }
+
+  suspend fun `clearing account display`() = apply {
+    ctx.patchCurrentAccount("""{"display":null}""").let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
+  }
+
+  suspend fun `patching account display with unknown field`() = apply {
+    ctx.patchCurrentAccount(
+      """
+        {
+          "display": {
+            "color": "#ABCDEF",
+            "emoji": "💰"
+          }
+        }
+      """.trimIndent()
+    ).let { response ->
+      ctx.response = response.toJsonResponse()
+      ctx.status = response.status
+    }
+  }
+
+  suspend fun `patching account name to null`() = apply {
+    ctx.patchCurrentAccount("""{"name":null}""").let { response ->
       ctx.response = response.toJsonResponse()
       ctx.status = response.status
     }
@@ -368,6 +395,12 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
     display.string("color") shouldBe "#ABCDEF"
     display.string("typeLabel") shouldBe "Investment"
     display.string("subtitle") shouldBe "Long-term"
+  }
+
+  fun `only display color is present`() = apply {
+    val display = ctx.response.obj("display")
+    display.keys shouldBe setOf("color")
+    display.string("color") shouldBe "#ABCDEF"
   }
 
   fun `display is empty`() = apply {
