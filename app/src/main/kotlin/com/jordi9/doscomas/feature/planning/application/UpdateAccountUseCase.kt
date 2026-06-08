@@ -24,12 +24,18 @@ class UpdateAccountUseCase(
   private val accounts: AccountRepository,
   private val clock: TimeClock
 ) {
-  suspend operator fun invoke(request: AccountUpdateRequest): Account =
-    accounts.update(request.accountId, request.updates.validated(), clock.now())
+  suspend operator fun invoke(request: UpdateAccountRequest): Account {
+    val updates = request.updates.validated()
+    if (!accounts.exists(request.accountId)) {
+      throw NotFoundException("Account not found: ${request.accountId.value}")
+    }
+
+    return accounts.update(request.accountId, updates, clock.now())
       ?: throw NotFoundException("Account not found: ${request.accountId.value}")
+  }
 }
 
-data class AccountUpdateRequest(
+data class UpdateAccountRequest(
   val accountId: AccountId,
   val updates: List<AccountUpdate>
 )

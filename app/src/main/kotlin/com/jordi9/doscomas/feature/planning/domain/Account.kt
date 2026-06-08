@@ -11,7 +11,6 @@ data class Account(
   val monthlyContribution: Money,
   val currency: String,
   val note: String?,
-  val balanceUpdatedAt: Instant,
   val createdAt: Instant,
   val updatedAt: Instant,
   val display: AccountDisplay

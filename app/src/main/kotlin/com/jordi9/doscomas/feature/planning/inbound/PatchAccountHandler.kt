@@ -1,7 +1,7 @@
 package com.jordi9.doscomas.feature.planning.inbound
 
 import com.jordi9.doscomas.Registry
-import com.jordi9.doscomas.feature.planning.application.AccountUpdateRequest
+import com.jordi9.doscomas.feature.planning.application.UpdateAccountRequest
 import com.jordi9.doscomas.feature.planning.application.UpdateAccountUseCase
 import com.jordi9.doscomas.feature.planning.domain.AccountBalanceUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountCategoryUpdate
@@ -36,10 +36,10 @@ class PatchAccountHandler(
   }
 }
 
-private fun JsonObject.toUpdateRequest(accountId: AccountId): AccountUpdateRequest {
+private fun JsonObject.toUpdateRequest(accountId: AccountId): UpdateAccountRequest {
   rejectUnknownFields(EDITABLE_FIELDS, "account")
 
-  return AccountUpdateRequest(
+  return UpdateAccountRequest(
     accountId = accountId,
     updates = listOfNotNull(
       stringUpdate("name", ::AccountNameUpdate),

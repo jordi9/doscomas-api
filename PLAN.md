@@ -116,7 +116,6 @@ balance
 monthlyContribution
 currency
 note
-balanceUpdatedAt
 createdAt
 updatedAt
 display
@@ -130,8 +129,6 @@ Rules:
 - `currency` is EUR only for now; omitted means EUR.
 - `balance` must be non-negative.
 - `monthlyContribution` may be negative.
-- `balanceUpdatedAt` defaults to now on create.
-- If `balance` changes in PATCH, update `balanceUpdatedAt` to now.
 - Any core/display change updates account `updatedAt`.
 - Account responses include `spaceId` even though routes are nested.
 
@@ -237,7 +234,6 @@ id
 spaceId
 createdAt
 updatedAt
-balanceUpdatedAt, except automatic update when balance changes
 ```
 
 ## Database schema
@@ -261,7 +257,6 @@ CREATE TABLE accounts (
   monthly_contribution_cents    INTEGER NOT NULL,
   currency                      TEXT    NOT NULL,
   note                          TEXT,
-  balance_updated_at            INTEGER NOT NULL,
   created_at                    INTEGER NOT NULL,
   updated_at                    INTEGER NOT NULL
 );
@@ -343,7 +338,7 @@ Minimum scenarios:
 - get account scoped to a space
 - account in another space returns `404`
 - patch core account fields
-- patch updates balance and `balanceUpdatedAt`
+- patch updates balance
 - patch display fields
 - clear display fields and return `display: {}`
 - clear nullable note

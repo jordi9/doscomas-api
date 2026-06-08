@@ -7,6 +7,7 @@ import com.jordi9.doscomas.fixture.AccountExample
 import com.jordi9.doscomas.fixture.AccountTable
 import com.jordi9.doscomas.fixture.SpaceExample
 import com.jordi9.doscomas.fixture.SpaceTable
+import com.jordi9.doscomas.fixture.accountId
 import com.jordi9.doscomas.fixture.spaceId
 import com.jordi9.doscomas.httpClient
 import com.jordi9.doscomas.sharedClock
@@ -124,6 +125,11 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
 
   suspend fun `getting the current account by ID`() = apply {
     ctx.capture(httpClient().get("/api/v1/accounts/${ctx.accountId.value}"))
+  }
+
+  suspend fun `patching a missing account`() = apply {
+    ctx.accountId = accountId()
+    ctx.patchCurrentAccount("""{"name":"Missing"}""")
   }
 
   suspend fun `patching core account fields`() = apply {
@@ -283,8 +289,8 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
     ctx.response.string("updatedAt") shouldBe currentTime()
   }
 
-  fun `balance updated at is current`() = apply {
-    ctx.response.string("balanceUpdatedAt") shouldBe currentTime()
+  fun `balance updated at is absent`() = apply {
+    ctx.response.keys.contains("balanceUpdatedAt") shouldBe false
   }
 
   fun `the account belongs to the current space`() = apply {
@@ -307,7 +313,7 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
       string("monthlyContribution") shouldBe "0.00"
       string("currency") shouldBe "EUR"
       stringOrNull("note") shouldBe "Main cash account"
-      string("balanceUpdatedAt") shouldBe currentTime()
+      keys.contains("balanceUpdatedAt") shouldBe false
       string("createdAt") shouldBe currentTime()
       string("updatedAt") shouldBe currentTime()
       obj("display").keys.shouldBeEmpty()

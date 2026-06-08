@@ -42,6 +42,13 @@ class AccountRepository(
     findAccount(accountId)
   }
 
+  suspend fun exists(accountId: AccountId): Boolean = jdbi.handle {
+    createQuery("SELECT COUNT(*) FROM accounts WHERE id = :id")
+      .bind("id", accountId.value)
+      .mapTo<Int>()
+      .one() > 0
+  }
+
   suspend fun update(accountId: AccountId, updates: List<AccountUpdate>, now: Instant): Account? = jdbi.handle {
     inTransaction<Account?, Exception> { transaction ->
       transaction.applyUpdates(accountId, updates, now)
@@ -49,25 +56,21 @@ class AccountRepository(
   }
 
   private fun Handle.applyUpdates(accountId: AccountId, updates: List<AccountUpdate>, now: Instant): Account? {
-    for (update in updates) {
-      if (!writeUpdate(accountId, update, now)) return null
-    }
+    updates.forEach { writeUpdate(accountId, it, now) }
     return findAccount(accountId)
   }
 
-  private fun Handle.writeUpdate(accountId: AccountId, update: AccountUpdate, now: Instant): Boolean = when (update) {
-    is AccountCoreUpdate -> write(update.toStatement(accountId, now)) > 0
-    is AccountDisplayUpdate -> updateDisplay(accountId, update.value, now)
+  private fun Handle.writeUpdate(accountId: AccountId, update: AccountUpdate, now: Instant) {
+    when (update) {
+      is AccountCoreUpdate -> update.toWrite().execute(this, accountId, now)
+      is AccountDisplayUpdate -> updateDisplay(accountId, update.value, now)
+    }
   }
 
-  private fun Handle.write(update: AccountUpdateStatement): Int = createUpdate(update.sql)
-    .bindKotlin(update.params)
-    .execute()
-
-  private fun Handle.updateDisplay(accountId: AccountId, display: AccountDisplay, now: Instant): Boolean {
-    if (touchAccount(accountId, now) == 0) return false
-    saveDisplay(accountId, display)
-    return true
+  private fun Handle.updateDisplay(accountId: AccountId, display: AccountDisplay, now: Instant) {
+    if (touchAccount(accountId, now) > 0) {
+      saveDisplay(accountId, display)
+    }
   }
 
   private fun Handle.saveDisplay(accountId: AccountId, display: AccountDisplay) {
@@ -109,7 +112,6 @@ private fun accountSelect(where: String): String =
       accounts.monthly_contribution_cents,
       accounts.currency,
       accounts.note,
-      accounts.balance_updated_at,
       accounts.created_at,
       accounts.updated_at,
       account_displays.initials,

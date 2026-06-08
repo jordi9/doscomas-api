@@ -4,7 +4,7 @@ import com.jordi9.doscomas.feature.planning.domain.Account
 import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
 import com.jordi9.doscomas.feature.planning.domain.AccountId
 
-internal data class AccountRecord(
+data class AccountRecord(
   val id: String,
   val spaceId: String,
   val name: String,
@@ -13,16 +13,15 @@ internal data class AccountRecord(
   val monthlyContributionCents: Long,
   val currency: String,
   val note: String?,
-  val balanceUpdatedAt: Long,
   val createdAt: Long,
   val updatedAt: Long
 )
 
-internal data class AccountDisplayIdRecord(
+data class AccountDisplayIdRecord(
   val accountId: String
 )
 
-internal data class AccountDisplayRecord(
+data class AccountDisplayRecord(
   val accountId: String,
   val initials: String?,
   val color: String?,
@@ -39,7 +38,6 @@ internal fun Account.toRecord() = AccountRecord(
   monthlyContributionCents = monthlyContribution.cents,
   currency = currency,
   note = note,
-  balanceUpdatedAt = balanceUpdatedAt.toEpochMilli(),
   createdAt = createdAt.toEpochMilli(),
   updatedAt = updatedAt.toEpochMilli()
 )

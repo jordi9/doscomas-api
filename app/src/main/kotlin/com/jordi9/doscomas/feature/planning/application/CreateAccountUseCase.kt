@@ -40,7 +40,6 @@ class CreateAccountUseCase(
         monthlyContribution = command.monthlyContribution,
         currency = validCurrency(command.currency),
         note = command.note?.let(::validNote),
-        balanceUpdatedAt = now,
         createdAt = now,
         updatedAt = now,
         display = validDisplay(command.display)

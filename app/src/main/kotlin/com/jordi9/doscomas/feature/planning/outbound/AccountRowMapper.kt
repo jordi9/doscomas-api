@@ -30,7 +30,6 @@ class AccountRowMapper : RowMapper<Account> {
       monthlyContribution = Money(rs.getLong("monthly_contribution_cents")),
       currency = rs.getString("currency"),
       note = rs.getString("note"),
-      balanceUpdatedAt = Instant.ofEpochMilli(rs.getLong("balance_updated_at")),
       createdAt = Instant.ofEpochMilli(rs.getLong("created_at")),
       updatedAt = Instant.ofEpochMilli(rs.getLong("updated_at")),
       display = display

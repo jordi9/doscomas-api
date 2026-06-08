@@ -63,6 +63,13 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
       .and().`the account belongs to the current space`()
   }
 
+  "patch missing account returns not found" {
+    Given.`no spaces exist`()
+    When.`patching a missing account`()
+    Then.`the response is not found`()
+      .and().`the error starts with`("Account not found: acc_")
+  }
+
   "patch core account fields" {
     Given
       .`a space exists`()
@@ -74,14 +81,14 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
       .and().`updated at is current`()
   }
 
-  "patch updates balance and balanceUpdatedAt" {
+  "patch updates balance" {
     Given.`a space exists`()
       .and().`an account exists in the current space`("Cash")
     When.`patching account balance`()
     Then
       .`the response is successful`()
       .and().`balance was patched`()
-      .and().`balance updated at is current`()
+      .and().`balance updated at is absent`()
   }
 
   "patch display fields" {

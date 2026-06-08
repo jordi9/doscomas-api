@@ -25,8 +25,7 @@ data class AccountExample(
   val monthlyContribution: Money = Money(0),
   val currency: String = "EUR",
   val note: String? = null,
-  val balanceUpdatedAt: Instant = sharedClock().now(),
-  val createdAt: Instant = balanceUpdatedAt,
+  val createdAt: Instant = sharedClock().now(),
   val updatedAt: Instant = createdAt,
   val display: AccountDisplay = AccountDisplay()
 )

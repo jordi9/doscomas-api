@@ -15,7 +15,6 @@ data class AccountResponse(
   val monthlyContribution: String,
   val currency: String,
   val note: String?,
-  val balanceUpdatedAt: String,
   val createdAt: String,
   val updatedAt: String,
   val display: Map<String, String>
@@ -30,7 +29,6 @@ fun Account.toResponse() = AccountResponse(
   monthlyContribution = monthlyContribution.toApiString(),
   currency = currency,
   note = note,
-  balanceUpdatedAt = balanceUpdatedAt.toString(),
   createdAt = createdAt.toString(),
   updatedAt = updatedAt.toString(),
   display = display.toResponse()

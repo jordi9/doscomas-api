@@ -46,7 +46,6 @@ object AccountTable {
             monthly_contribution_cents,
             currency,
             note,
-            balance_updated_at,
             created_at,
             updated_at
           ) VALUES (
@@ -58,7 +57,6 @@ object AccountTable {
             :monthlyContributionCents,
             :currency,
             :note,
-            :balanceUpdatedAt,
             :createdAt,
             :updatedAt
           )
@@ -71,7 +69,6 @@ object AccountTable {
         .bind("monthlyContributionCents", example.monthlyContribution.cents)
         .bind("currency", example.currency)
         .bind("note", example.note)
-        .bind("balanceUpdatedAt", example.balanceUpdatedAt.toEpochMilli())
         .bind("createdAt", example.createdAt.toEpochMilli())
         .bind("updatedAt", example.updatedAt.toEpochMilli())
         .execute()

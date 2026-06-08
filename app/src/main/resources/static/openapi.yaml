@@ -399,7 +399,6 @@ components:
         - monthlyContribution
         - currency
         - note
-        - balanceUpdatedAt
         - createdAt
         - updatedAt
         - display
@@ -430,9 +429,6 @@ components:
           type: string
           nullable: true
           maxLength: 500
-        balanceUpdatedAt:
-          type: string
-          format: date-time
         createdAt:
           type: string
           format: date-time
