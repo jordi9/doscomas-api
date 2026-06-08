@@ -3,8 +3,8 @@ package com.jordi9.doscomas.feature.planning.application
 import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.domain.Account
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
-import com.jordi9.doscomas.feature.planning.outbound.AccountRepository
-import com.jordi9.doscomas.feature.planning.outbound.SpaceRepository
+import com.jordi9.doscomas.feature.planning.outbound.account.AccountRepository
+import com.jordi9.doscomas.feature.planning.outbound.space.SpaceRepository
 import com.jordi9.doscomas.shared.domain.NotFoundException
 
 class ListAccountsUseCase(

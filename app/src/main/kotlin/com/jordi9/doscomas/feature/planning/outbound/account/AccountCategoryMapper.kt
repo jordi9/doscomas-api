@@ -1,4 +1,4 @@
-package com.jordi9.doscomas.feature.planning.outbound
+package com.jordi9.doscomas.feature.planning.outbound.account
 
 import com.jordi9.doscomas.feature.planning.domain.AccountCategory
 

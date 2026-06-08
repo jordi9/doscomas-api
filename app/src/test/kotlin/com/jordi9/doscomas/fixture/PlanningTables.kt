@@ -2,9 +2,11 @@ package com.jordi9.doscomas.fixture
 
 import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
-import com.jordi9.doscomas.feature.planning.outbound.AccountCategoryMapper
+import com.jordi9.doscomas.feature.planning.outbound.account.AccountCategoryMapper
 import com.jordi9.doscomas.jdbi
 import com.jordi9.krat.jdbi.handleSync
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import org.jdbi.v3.core.kotlin.mapTo
 
 object SpaceTable {
@@ -46,6 +48,7 @@ object AccountTable {
             monthly_contribution_cents,
             currency,
             note,
+            display_json,
             created_at,
             updated_at
           ) VALUES (
@@ -57,6 +60,7 @@ object AccountTable {
             :monthlyContributionCents,
             :currency,
             :note,
+            :displayJson,
             :createdAt,
             :updatedAt
           )
@@ -69,37 +73,23 @@ object AccountTable {
         .bind("monthlyContributionCents", example.monthlyContribution.cents)
         .bind("currency", example.currency)
         .bind("note", example.note)
+        .bind("displayJson", Json.encodeToString(example.display.value))
         .bind("createdAt", example.createdAt.toEpochMilli())
         .bind("updatedAt", example.updatedAt.toEpochMilli())
         .execute()
-
-      if (!example.display.isEmpty()) {
-        createUpdate(
-          """
-            INSERT INTO account_displays (account_id, initials, color, type_label, subtitle)
-            VALUES (:accountId, :initials, :color, :typeLabel, :subtitle)
-          """.trimIndent()
-        ).bind("accountId", example.id.value)
-          .bind("initials", example.display.initials)
-          .bind("color", example.display.color)
-          .bind("typeLabel", example.display.typeLabel)
-          .bind("subtitle", example.display.subtitle)
-          .execute()
-      }
     }
     return AccountRow(id = example.id, spaceId = example.spaceId, name = example.name)
   }
 
-  fun displayExists(accountId: AccountId): Boolean = jdbi().handleSync {
-    createQuery("SELECT COUNT(*) FROM account_displays WHERE account_id = :accountId")
+  fun displayJson(accountId: AccountId): String = jdbi().handleSync {
+    createQuery("SELECT display_json FROM accounts WHERE id = :accountId")
       .bind("accountId", accountId.value)
-      .mapTo<Int>()
-      .one() > 0
+      .mapTo<String>()
+      .one()
   }
 
   fun deleteAll() {
     jdbi().handleSync {
-      execute("DELETE FROM account_displays")
       execute("DELETE FROM accounts")
     }
   }

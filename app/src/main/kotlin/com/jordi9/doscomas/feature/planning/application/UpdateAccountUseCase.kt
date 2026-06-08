@@ -13,10 +13,9 @@ import com.jordi9.doscomas.feature.planning.domain.AccountNoteUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountUpdate
 import com.jordi9.doscomas.feature.planning.domain.validBalance
 import com.jordi9.doscomas.feature.planning.domain.validCurrency
-import com.jordi9.doscomas.feature.planning.domain.validDisplay
 import com.jordi9.doscomas.feature.planning.domain.validName
 import com.jordi9.doscomas.feature.planning.domain.validNote
-import com.jordi9.doscomas.feature.planning.outbound.AccountRepository
+import com.jordi9.doscomas.feature.planning.outbound.account.AccountRepository
 import com.jordi9.doscomas.shared.domain.NotFoundException
 import com.jordi9.krat.time.TimeClock
 
@@ -49,7 +48,7 @@ private fun AccountUpdate.validated(): AccountUpdate = when (this) {
   is AccountMonthlyContributionUpdate -> this
   is AccountCurrencyUpdate -> copy(value = validCurrency(value))
   is AccountNoteUpdate -> copy(value = value?.let(::validNote))
-  is AccountDisplayUpdate -> copy(value = validDisplay(value))
+  is AccountDisplayUpdate -> this
 }
 
 fun UpdateAccountUseCase(registry: Registry) = UpdateAccountUseCase(

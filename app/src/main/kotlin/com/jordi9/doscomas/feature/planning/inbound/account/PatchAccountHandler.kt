@@ -1,4 +1,4 @@
-package com.jordi9.doscomas.feature.planning.inbound
+package com.jordi9.doscomas.feature.planning.inbound.account
 
 import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.application.UpdateAccountRequest
@@ -6,7 +6,6 @@ import com.jordi9.doscomas.feature.planning.application.UpdateAccountUseCase
 import com.jordi9.doscomas.feature.planning.domain.AccountBalanceUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountCategoryUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountCurrencyUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
 import com.jordi9.doscomas.feature.planning.domain.AccountDisplayUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.AccountMonthlyContributionUpdate
@@ -14,16 +13,16 @@ import com.jordi9.doscomas.feature.planning.domain.AccountNameUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountNoteUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountUpdate
 import com.jordi9.doscomas.feature.planning.domain.Money
+import com.jordi9.doscomas.feature.planning.inbound.rejectUnknownFields
+import com.jordi9.doscomas.feature.planning.inbound.stringValue
+import com.jordi9.doscomas.feature.planning.inbound.validateRequest
 import com.jordi9.krat.pack.core.Handler
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.util.getValue
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.decodeFromJsonElement
 
 class PatchAccountHandler(
   private val updateAccount: UpdateAccountUseCase
@@ -67,13 +66,7 @@ private fun JsonObject.nullableStringUpdate(field: String, build: (String?) -> A
 
 private fun JsonObject.displayUpdate(): AccountUpdate? {
   val element = this["display"] ?: return null
-  if (element is JsonNull) return AccountDisplayUpdate(AccountDisplay())
-  return AccountDisplayUpdate(element.displayValue())
-}
-
-private fun JsonElement.displayValue(): AccountDisplay {
-  val display = this as? JsonObject ?: badRequest("display must be an object")
-  return Json.decodeFromJsonElement<AccountDisplayRequest>(display).toDomain()
+  return AccountDisplayUpdate(element.toAccountDisplay())
 }
 
 private val EDITABLE_FIELDS = setOf("name", "category", "balance", "monthlyContribution", "currency", "note", "display")

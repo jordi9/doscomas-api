@@ -1,4 +1,4 @@
-package com.jordi9.doscomas.feature.planning.inbound
+package com.jordi9.doscomas.feature.planning.inbound.space
 
 import com.jordi9.doscomas.feature.planning.domain.Space
 import kotlinx.serialization.Serializable

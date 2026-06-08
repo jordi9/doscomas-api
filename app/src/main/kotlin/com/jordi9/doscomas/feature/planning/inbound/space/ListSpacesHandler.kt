@@ -1,4 +1,4 @@
-package com.jordi9.doscomas.feature.planning.inbound
+package com.jordi9.doscomas.feature.planning.inbound.space
 
 import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.application.ListSpacesUseCase

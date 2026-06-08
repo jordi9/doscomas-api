@@ -18,7 +18,7 @@ Keep this slice small:
 - `CONTEXT.md` — glossary for User, Space, Account, Balance, Monthly Contribution, Account Category, Account Display.
 - `docs/adr/0001-money-storage-and-api-format.md` — store money as cents internally, expose decimal strings in the API.
 - `docs/adr/0002-use-generated-opaque-string-identifiers.md` — generated opaque prefixed IDs.
-- `docs/adr/0003-model-account-display-separately.md` — display details are separate from core account data.
+- `docs/adr/0003-use-semantic-value-objects-for-opaque-json-objects.md` — opaque JSON objects use semantic value objects; account display is the first case.
 - `docs/adr/0005-use-direct-account-routes-for-single-account-resources.md` — single-account reads and updates use direct account routes.
 
 ## Routes
@@ -177,26 +177,15 @@ Rules:
 
 ## Account display
 
-Account display is separate from core financial account data, but composed into account API responses.
-
-Display fields:
-
-```text
-initials
-color
-typeLabel
-subtitle
-```
+Account display is separate from core financial account data, but composed into account API responses as a nested JSON object. The backend treats the object's internal fields as client-owned presentation data.
 
 Rules:
 
-- Store display in a separate `account_displays` table.
-- Do not store display as top-level account columns.
-- Do not store arbitrary display JSON in this slice.
+- Store display as JSON text in `accounts.display_json`.
+- Validate the HTTP shape at the edge: `display` must be a top-level JSON object when present.
+- Keep display as an `AccountDisplay` value class around the JSON object; do not model keys such as `initials`, `color`, `typeLabel`, or `subtitle` in the domain or repository.
 - `display` may be omitted or partial on create.
 - Empty display response is `"display": {}`.
-- `color` accepts `#RRGGBB` only.
-- `account_displays` has no own timestamps.
 - Display changes update the parent account `updatedAt`.
 - No separate display endpoints yet.
 
@@ -207,12 +196,11 @@ Use ordinary `application/json` partial objects, not `application/merge-patch+js
 Rules:
 
 - Missing fields are unchanged.
-- Explicit `null` clears nullable fields, including `note` and display keys.
+- Explicit `null` clears nullable fields, including `note`.
 - Explicit `null` for non-nullable fields returns `400`.
 - If `display` is omitted, display is unchanged.
-- If `display: null`, clear all display.
-- If included display keys are `null`, clear those keys.
-- If all display fields are cleared, delete the `account_displays` row.
+- If `display: null`, clear all display to `{}`.
+- If `display` is an object, replace the whole display object.
 - Success returns `200` with the full updated account response.
 
 Editable account fields:
@@ -257,17 +245,10 @@ CREATE TABLE accounts (
   monthly_contribution_cents    INTEGER NOT NULL,
   currency                      TEXT    NOT NULL,
   note                          TEXT,
+  display_json                  TEXT    NOT NULL DEFAULT '{}'
+    CHECK (json_valid(display_json) AND json_type(display_json) = 'object' AND length(CAST(display_json AS BLOB)) <= 65536),
   created_at                    INTEGER NOT NULL,
   updated_at                    INTEGER NOT NULL
-);
-
-CREATE TABLE account_displays (
-  account_id  TEXT PRIMARY KEY REFERENCES accounts(id),
-  initials    TEXT,
-  color       TEXT,
-  type_label  TEXT,
-  subtitle    TEXT,
-  CHECK (initials IS NOT NULL OR color IS NOT NULL OR type_label IS NOT NULL OR subtitle IS NOT NULL)
 );
 ```
 
@@ -288,11 +269,10 @@ Reuse the current error response shape:
 Validation rules:
 
 - Trim names and reject blank names.
-- Apply practical max lengths:
-  - name: 120
-  - note/subtitle/typeLabel: 500
-  - initials: 8
-  - color: 7
+- Apply practical limits:
+  - name: 120 characters
+  - note: 500 characters
+  - display: top-level JSON object up to 64 KiB when serialized
 - Reject invalid account categories.
 - Reject invalid money format/precision.
 - Reject negative balances.

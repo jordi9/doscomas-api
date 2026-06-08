@@ -1,8 +1,8 @@
-package com.jordi9.doscomas.feature.planning.outbound
+package com.jordi9.doscomas.feature.planning.outbound.account
 
 import com.jordi9.doscomas.feature.planning.domain.Account
 import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
-import com.jordi9.doscomas.feature.planning.domain.AccountId
+import kotlinx.serialization.json.Json
 
 data class AccountRecord(
   val id: String,
@@ -13,23 +13,12 @@ data class AccountRecord(
   val monthlyContributionCents: Long,
   val currency: String,
   val note: String?,
+  val displayJson: String,
   val createdAt: Long,
   val updatedAt: Long
 )
 
-data class AccountDisplayIdRecord(
-  val accountId: String
-)
-
-data class AccountDisplayRecord(
-  val accountId: String,
-  val initials: String?,
-  val color: String?,
-  val typeLabel: String?,
-  val subtitle: String?
-)
-
-internal fun Account.toRecord() = AccountRecord(
+fun Account.toRecord() = AccountRecord(
   id = id.value,
   spaceId = spaceId.value,
   name = name,
@@ -38,14 +27,9 @@ internal fun Account.toRecord() = AccountRecord(
   monthlyContributionCents = monthlyContribution.cents,
   currency = currency,
   note = note,
+  displayJson = display.toJsonText(),
   createdAt = createdAt.toEpochMilli(),
   updatedAt = updatedAt.toEpochMilli()
 )
 
-internal fun AccountDisplay.toRecord(accountId: AccountId) = AccountDisplayRecord(
-  accountId = accountId.value,
-  initials = initials,
-  color = color,
-  typeLabel = typeLabel,
-  subtitle = subtitle
-)
+fun AccountDisplay.toJsonText(): String = Json.encodeToString(value)

@@ -3,7 +3,7 @@ package com.jordi9.doscomas.feature.planning.application
 import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.domain.Space
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
-import com.jordi9.doscomas.feature.planning.outbound.SpaceRepository
+import com.jordi9.doscomas.feature.planning.outbound.space.SpaceRepository
 import com.jordi9.doscomas.shared.domain.NotFoundException
 
 class GetSpaceUseCase(

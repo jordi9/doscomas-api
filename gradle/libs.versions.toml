@@ -51,6 +51,7 @@ krat-otel = "com.jordi9:krat-otel:1.3.0"
 krat-otel-testlib = "com.jordi9:krat-otel-testlib:0.1.0"
 krat-time = "com.jordi9:krat-time:0.1.0"
 krat-time-testlib = "com.jordi9:krat-time-testlib:0.1.0"
+krat-gag = "com.jordi9:krat-gag:0.1.0"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

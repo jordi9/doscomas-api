@@ -1,4 +1,4 @@
-package com.jordi9.doscomas.feature.planning.outbound
+package com.jordi9.doscomas.feature.planning.outbound.account
 
 import com.jordi9.doscomas.feature.planning.domain.AccountBalanceUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountCategoryUpdate
@@ -8,6 +8,7 @@ import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.AccountMonthlyContributionUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountNameUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountNoteUpdate
+import org.intellij.lang.annotations.Language
 import org.jdbi.v3.core.Handle
 import java.time.Instant
 
@@ -30,6 +31,12 @@ private class AccountField<T>(column: String) {
       .execute()
   }
 }
+
+data class AccountDisplayRecord(
+  val id: String,
+  val displayJson: String,
+  val updatedAt: Long
+)
 
 private object AccountFields {
   val name = AccountField<String>("name")
@@ -56,6 +63,7 @@ private fun accountUpdateSql(column: String): String = buildString {
   append("WHERE id = :id")
 }
 
+@Language("SQL")
 const val INSERT_ACCOUNT = """
   INSERT INTO accounts (
     id,
@@ -66,6 +74,7 @@ const val INSERT_ACCOUNT = """
     monthly_contribution_cents,
     currency,
     note,
+    display_json,
     created_at,
     updated_at
   ) VALUES (
@@ -77,33 +86,16 @@ const val INSERT_ACCOUNT = """
     :monthlyContributionCents,
     :currency,
     :note,
+    :displayJson,
     :createdAt,
     :updatedAt
   )
 """
 
-data class TouchAccountRecord(
-  val id: String,
-  val updatedAt: Long
-)
-
-const val TOUCH_ACCOUNT = """
+@Language("SQL")
+const val UPDATE_DISPLAY = """
   UPDATE accounts
-  SET updated_at = :updatedAt
+  SET display_json = :displayJson,
+      updated_at = :updatedAt
   WHERE id = :id
-"""
-
-const val DELETE_DISPLAY = """
-  DELETE FROM account_displays
-  WHERE account_id = :accountId
-"""
-
-const val UPSERT_DISPLAY = """
-  INSERT INTO account_displays (account_id, initials, color, type_label, subtitle)
-  VALUES (:accountId, :initials, :color, :typeLabel, :subtitle)
-  ON CONFLICT(account_id) DO UPDATE SET
-    initials = excluded.initials,
-    color = excluded.color,
-    type_label = excluded.type_label,
-    subtitle = excluded.subtitle
 """

@@ -1,4 +1,4 @@
-package com.jordi9.doscomas.feature.planning.outbound
+package com.jordi9.doscomas.feature.planning.outbound.account
 
 import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.domain.Account
@@ -9,6 +9,7 @@ import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.AccountUpdate
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
 import com.jordi9.krat.jdbi.handle
+import org.intellij.lang.annotations.Language
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.kotlin.bindKotlin
@@ -23,7 +24,6 @@ class AccountRepository(
       .bindKotlin(account.toRecord())
       .execute()
 
-    saveDisplay(account.id, account.display)
     createQuery(accountSelect("WHERE accounts.id = :id AND accounts.space_id = :spaceId"))
       .bind("id", account.id.value)
       .bind("spaceId", account.spaceId.value)
@@ -68,27 +68,10 @@ class AccountRepository(
   }
 
   private fun Handle.updateDisplay(accountId: AccountId, display: AccountDisplay, now: Instant) {
-    if (touchAccount(accountId, now) > 0) {
-      saveDisplay(accountId, display)
-    }
-  }
-
-  private fun Handle.saveDisplay(accountId: AccountId, display: AccountDisplay) {
-    if (display.isEmpty()) {
-      createUpdate(DELETE_DISPLAY)
-        .bindKotlin(AccountDisplayIdRecord(accountId.value))
-        .execute()
-      return
-    }
-
-    createUpdate(UPSERT_DISPLAY)
-      .bindKotlin(display.toRecord(accountId))
+    createUpdate(UPDATE_DISPLAY)
+      .bindKotlin(AccountDisplayRecord(accountId.value, display.toJsonText(), now.toEpochMilli()))
       .execute()
   }
-
-  private fun Handle.touchAccount(accountId: AccountId, now: Instant): Int = createUpdate(TOUCH_ACCOUNT)
-    .bindKotlin(TouchAccountRecord(accountId.value, now.toEpochMilli()))
-    .execute()
 
   private fun Handle.findAccount(accountId: AccountId): Account? = createQuery(accountSelect("WHERE accounts.id = :id"))
     .bind("id", accountId.value)
@@ -101,6 +84,7 @@ fun AccountRepository(registry: Registry) = AccountRepository(
   jdbi = registry.jdbi
 )
 
+@Language("SQL")
 private fun accountSelect(where: String): String =
   """
     SELECT
@@ -112,13 +96,9 @@ private fun accountSelect(where: String): String =
       accounts.monthly_contribution_cents,
       accounts.currency,
       accounts.note,
+      accounts.display_json,
       accounts.created_at,
-      accounts.updated_at,
-      account_displays.initials,
-      account_displays.color,
-      account_displays.type_label,
-      account_displays.subtitle
+      accounts.updated_at
     FROM accounts
-    LEFT JOIN account_displays ON account_displays.account_id = accounts.id
     $where
   """.trimIndent()

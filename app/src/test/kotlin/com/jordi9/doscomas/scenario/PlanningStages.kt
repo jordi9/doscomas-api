@@ -1,12 +1,12 @@
 package com.jordi9.doscomas.scenario
 
-import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
 import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
 import com.jordi9.doscomas.fixture.AccountExample
 import com.jordi9.doscomas.fixture.AccountTable
 import com.jordi9.doscomas.fixture.SpaceExample
 import com.jordi9.doscomas.fixture.SpaceTable
+import com.jordi9.doscomas.fixture.accountDisplay
 import com.jordi9.doscomas.fixture.accountId
 import com.jordi9.doscomas.fixture.spaceId
 import com.jordi9.doscomas.httpClient
@@ -71,11 +71,15 @@ class GivenPlanning : StageContext<GivenPlanning, PlanningContext>() {
     val account = AccountExample(
       spaceId = ctx.spaceId,
       name = "Cash",
-      display = AccountDisplay(
-        initials = "CA",
-        color = "#112233",
-        typeLabel = "Cash",
-        subtitle = "Main account"
+      display = accountDisplay(
+        """
+          {
+            "initials": "CA",
+            "color": "#112233",
+            "typeLabel": "Cash",
+            "subtitle": "Main account"
+          }
+        """.trimIndent()
       )
     )
     val row = AccountTable.insert(account)
@@ -111,6 +115,27 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
           "category": "cash",
           "balance": "8420",
           "note": "Main cash account"
+        }
+      """.trimIndent()
+    )
+    if (ctx.status == HttpStatusCode.Created) {
+      ctx.accountId = AccountId(response.string("id"))
+    }
+  }
+
+  suspend fun `creating an account with client-owned display`() = apply {
+    val response = ctx.postAccount(
+      """
+        {
+          "name": "Cash",
+          "category": "cash",
+          "balance": "8420",
+          "display": {
+            "icon": "💰",
+            "card": {
+              "subtitle": "Nested display"
+            }
+          }
         }
       """.trimIndent()
     )
@@ -181,17 +206,23 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
     ctx.patchCurrentAccount("""{"display":null}""")
   }
 
-  suspend fun `patching account display with unknown field`() = apply {
+  suspend fun `patching account display with client-owned fields`() = apply {
     ctx.patchCurrentAccount(
       """
         {
           "display": {
-            "color": "#ABCDEF",
-            "emoji": "💰"
+            "icon": "💰",
+            "card": {
+              "subtitle": "Nested display"
+            }
           }
         }
       """.trimIndent()
     )
+  }
+
+  suspend fun `patching account display to non-object`() = apply {
+    ctx.patchCurrentAccount("""{"display":[]}""")
   }
 
   suspend fun `patching account name to null`() = apply {
@@ -348,12 +379,19 @@ class ThenPlanning : StageContext<ThenPlanning, PlanningContext>() {
     display.string("color") shouldBe "#ABCDEF"
   }
 
+  fun `client-owned display fields are returned`() = apply {
+    val display = ctx.response.obj("display")
+    display.keys shouldBe setOf("icon", "card")
+    display.string("icon") shouldBe "💰"
+    display.obj("card").string("subtitle") shouldBe "Nested display"
+  }
+
   fun `display is empty`() = apply {
     ctx.response.obj("display").keys.shouldBeEmpty()
   }
 
-  fun `display row was deleted`() = apply {
-    AccountTable.displayExists(ctx.accountId) shouldBe false
+  fun `display json was cleared`() = apply {
+    AccountTable.displayJson(ctx.accountId) shouldBe "{}"
   }
 
   fun `note is null`() = apply {

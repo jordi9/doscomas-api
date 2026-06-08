@@ -233,7 +233,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
     patch:
       summary: Patch editable account fields
-      description: Missing account fields are unchanged. Null clears nullable fields. If supplied, display replaces the whole display object; null clears display.
+      description: Missing account fields are unchanged. Null clears nullable fields. If supplied, display replaces the whole client-owned JSON object; display null clears display.
       parameters:
         - $ref: '#/components/parameters/AccountId'
       requestBody:
@@ -467,7 +467,9 @@ components:
           nullable: true
           maxLength: 500
         display:
-          $ref: '#/components/schemas/AccountDisplay'
+          description: Optional client-owned presentation JSON object. Omitted defaults to an empty object.
+          allOf:
+            - $ref: '#/components/schemas/AccountDisplay'
 
     PatchAccountRequest:
       type: object
@@ -493,7 +495,7 @@ components:
           nullable: true
           maxLength: 500
         display:
-          description: Replaces the whole display object when supplied; null clears display; missing leaves display unchanged.
+          description: Replaces the whole client-owned display JSON object when supplied; null clears display; missing leaves display unchanged.
           nullable: true
           allOf:
             - $ref: '#/components/schemas/AccountDisplay'
@@ -510,21 +512,5 @@ components:
 
     AccountDisplay:
       type: object
-      additionalProperties: false
-      properties:
-        initials:
-          type: string
-          nullable: true
-          maxLength: 8
-        color:
-          type: string
-          nullable: true
-          pattern: '^#[0-9A-Fa-f]{6}$'
-        typeLabel:
-          type: string
-          nullable: true
-          maxLength: 500
-        subtitle:
-          type: string
-          nullable: true
-          maxLength: 500
+      description: Client-owned presentation JSON object. The backend validates that the top-level value is an object and stores it opaquely up to 64 KiB.
+      additionalProperties: true

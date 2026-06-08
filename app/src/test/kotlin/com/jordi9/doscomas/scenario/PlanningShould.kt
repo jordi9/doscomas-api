@@ -36,6 +36,13 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
       .and().`the account has create defaults`()
   }
 
+  "create an account with client-owned display" {
+    Given.`a space exists`()
+    When.`creating an account with client-owned display`()
+    Then.`a resource was created`()
+      .and().`client-owned display fields are returned`()
+  }
+
   "list accounts scoped to a space" {
     Given.`a space exists`()
       .and().`an account exists in the current space`("Cash")
@@ -118,15 +125,24 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
     Then
       .`the response is successful`()
       .and().`display is empty`()
-      .and().`display row was deleted`()
+      .and().`display json was cleared`()
   }
 
-  "reject display with unknown field" {
+  "patch display with client-owned fields" {
     Given.`a space exists`()
       .and().`an account exists in the current space`("Cash")
-    When.`patching account display with unknown field`()
+    When.`patching account display with client-owned fields`()
+    Then.`the response is successful`()
+      .and().`client-owned display fields are returned`()
+      .and().`updated at is current`()
+  }
+
+  "reject non-object display" {
+    Given.`a space exists`()
+      .and().`an account exists in the current space`("Cash")
+    When.`patching account display to non-object`()
     Then.`the response is bad request`()
-      .and().`the error is`("Invalid request body")
+      .and().`the error is`("display must be an object")
   }
 
   "reject null for non-null patch field" {

@@ -10,9 +10,7 @@ depending on hidden defaults and makes command construction show the complete in
 `null` or omission to mean "clear/default this non-null domain field", translate that at the inbound boundary too; keep
 `null` in commands only when `null` is a real target value.
 
-Domain types may still expose defaults when the default is a real domain value rather than an API omission rule. For
-example, `AccountDisplay()` means "no display metadata" and remains useful across inbound, domain logic, persistence
-mapping, and tests.
+Domain types may still expose defaults when the default is a real domain value rather than an API omission rule. Do not use constructor defaults to smuggle adapter representations into the domain; for example, omitted account display is translated at the inbound boundary into an explicit empty JSON object wrapped by `AccountDisplay`.
 
 If we ever need to distinguish "client omitted this" from "client explicitly sent the default", model that distinction
 in the request/command shape instead of relying on defaulted values.
