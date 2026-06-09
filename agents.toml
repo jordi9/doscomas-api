@@ -1,0 +1,9 @@
+version = 1
+agents = []
+
+[trust]
+allow_all = true
+
+[[skills]]
+name = "backend-mode"
+source = "git@github.com:jordi9/skills"

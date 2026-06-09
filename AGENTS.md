@@ -1,12 +1,8 @@
-# CLAUDE.md
+# AGENTS.md
 
 Doscomas: Kotlin REST API backend using Ktor and hexagonal architecture.
 
-## MANDATORY: Use backend-mode Skill
-
 **BEFORE implementing, planning, or discussing architecture: invoke the `backend-mode` skill.**
-
-This skill defines how this project works: layer placement, TDD workflow, testing strategy, and patterns. Do not guess or assume - read the skill first.
 
 ## Current handoff
 
