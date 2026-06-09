@@ -1,10 +1,12 @@
 [versions]
+archunit = "1.4.2"
 kotlin = "2.3.21"
 micrometer = "1.16.5"
 opentelemetry = "1.62.0"
 opentelemetry-alpha = "1.62.0-alpha"
 
 [libraries]
+archunit = { module = "com.tngtech.archunit:archunit", version.ref = "archunit" }
 ktor-bom = "io.ktor:ktor-bom:3.5.0"
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation" }
