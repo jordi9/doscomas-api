@@ -2,6 +2,7 @@ package com.jordi9.doscomas.feature.planning.inbound.space
 
 import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.application.CreateSpaceUseCase
+import com.jordi9.doscomas.feature.planning.domain.SpaceName
 import com.jordi9.krat.pack.core.Handler
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -14,7 +15,7 @@ class CreateSpaceHandler(
 ) : Handler {
   override suspend fun handle(call: ApplicationCall) {
     val request = call.receive<Request>()
-    call.respond(HttpStatusCode.Created, createSpace(request.name).toResponse())
+    call.respond(HttpStatusCode.Created, createSpace(SpaceName(request.name.trim())).toResponse())
   }
 
   @Serializable

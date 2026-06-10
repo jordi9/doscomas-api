@@ -1,6 +1,6 @@
 package com.jordi9.doscomas
 
-import com.jordi9.doscomas.feature.greeting.inbound.GreetingConfig
+import com.jordi9.doscomas.feature.greeting.application.GreetingConfig
 import com.jordi9.doscomas.shared.outbound.metrics.MeterRegistryProvider
 import com.jordi9.krat.jdbi.DatabaseConfig
 import com.jordi9.krat.jdbi.JdbiProvider

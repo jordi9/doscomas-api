@@ -2,6 +2,7 @@ package com.jordi9.doscomas.scenario
 
 import com.jordi9.doscomas.feature.planning.domain.AccountId
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
+import com.jordi9.doscomas.feature.planning.domain.SpaceName
 import com.jordi9.doscomas.fixture.AccountExample
 import com.jordi9.doscomas.fixture.AccountTable
 import com.jordi9.doscomas.fixture.SpaceExample
@@ -42,8 +43,8 @@ class GivenPlanning : StageContext<GivenPlanning, PlanningContext>() {
   }
 
   fun `two spaces exist`() = apply {
-    val first = SpaceTable.insert(SpaceExample(name = "First Space"))
-    val second = SpaceTable.insert(SpaceExample(name = "Second Space"))
+    val first = SpaceTable.insert(SpaceExample(name = SpaceName("First Space")))
+    val second = SpaceTable.insert(SpaceExample(name = SpaceName("Second Space")))
     ctx.spaceIds = (first.id to second.id)
     ctx.spaceId = second.id
   }
@@ -92,10 +93,12 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
     ctx.capture(httpClient().get("/api/v1/spaces"))
   }
 
-  suspend fun `creating a space`() = apply {
+  suspend fun `creating a space`() = `creating a space named`("FIRE")
+
+  suspend fun `creating a space named`(name: String) = apply {
     val response = ctx.capture(
       httpClient().post("/api/v1/spaces") {
-        jsonBody("""{"name":"FIRE"}""")
+        jsonBody("""{"name":"$name"}""")
       }
     )
     if (ctx.status == HttpStatusCode.Created) {
@@ -115,6 +118,21 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
           "category": "cash",
           "balance": "8420",
           "note": "Main cash account"
+        }
+      """.trimIndent()
+    )
+    if (ctx.status == HttpStatusCode.Created) {
+      ctx.accountId = AccountId(response.string("id"))
+    }
+  }
+
+  suspend fun `creating an account named`(name: String) = apply {
+    val response = ctx.postAccount(
+      """
+        {
+          "name": "$name",
+          "category": "cash",
+          "balance": "8420"
         }
       """.trimIndent()
     )
@@ -233,7 +251,7 @@ class WhenPlanning : StageContext<WhenPlanning, PlanningContext>() {
     ctx.patchCurrentAccount("""{"note":null}""")
   }
 
-  suspend fun `creating an account with invalid money precision`() = apply {
+  suspend fun `creating an account with invalid amount precision`() = apply {
     ctx.postAccount("""{"name":"Cash","category":"cash","balance":"1.001"}""")
   }
 

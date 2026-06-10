@@ -4,7 +4,7 @@ import java.time.Instant
 
 data class Space(
   val id: SpaceId,
-  val name: String,
+  val name: SpaceName,
   val createdAt: Instant,
   val updatedAt: Instant
 )

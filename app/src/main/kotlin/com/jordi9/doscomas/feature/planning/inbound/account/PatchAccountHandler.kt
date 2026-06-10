@@ -1,17 +1,18 @@
 package com.jordi9.doscomas.feature.planning.inbound.account
 
 import com.jordi9.doscomas.Registry
+import com.jordi9.doscomas.feature.planning.application.AccountBalanceUpdate
+import com.jordi9.doscomas.feature.planning.application.AccountCategoryUpdate
+import com.jordi9.doscomas.feature.planning.application.AccountCurrencyUpdate
+import com.jordi9.doscomas.feature.planning.application.AccountDisplayUpdate
+import com.jordi9.doscomas.feature.planning.application.AccountMonthlyContributionUpdate
+import com.jordi9.doscomas.feature.planning.application.AccountNameUpdate
+import com.jordi9.doscomas.feature.planning.application.AccountNoteUpdate
+import com.jordi9.doscomas.feature.planning.application.AccountUpdate
 import com.jordi9.doscomas.feature.planning.application.UpdateAccountRequest
 import com.jordi9.doscomas.feature.planning.application.UpdateAccountUseCase
-import com.jordi9.doscomas.feature.planning.domain.AccountBalanceUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountCategoryUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountCurrencyUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountDisplayUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountId
-import com.jordi9.doscomas.feature.planning.domain.AccountMonthlyContributionUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountNameUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountNoteUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountUpdate
+import com.jordi9.doscomas.feature.planning.domain.AccountName
 import com.jordi9.doscomas.feature.planning.inbound.rejectUnknownFields
 import com.jordi9.doscomas.feature.planning.inbound.stringValue
 import com.jordi9.doscomas.feature.planning.inbound.validateRequest
@@ -40,11 +41,11 @@ private fun JsonObject.toUpdateRequest(accountId: AccountId): UpdateAccountReque
   return UpdateAccountRequest(
     accountId = accountId,
     updates = listOfNotNull(
-      stringUpdate("name", ::AccountNameUpdate),
+      stringUpdate("name") { AccountNameUpdate(AccountName(it.trim())) },
       stringUpdate("category") { AccountCategoryUpdate(toAccountCategory(it)) },
-      stringUpdate("balance") { AccountBalanceUpdate(toMoney(it)) },
-      stringUpdate("monthlyContribution") { AccountMonthlyContributionUpdate(toMoney(it)) },
-      stringUpdate("currency", ::AccountCurrencyUpdate),
+      stringUpdate("balance") { AccountBalanceUpdate(toBalance(it)) },
+      stringUpdate("monthlyContribution") { AccountMonthlyContributionUpdate(toMonthlyContribution(it)) },
+      stringUpdate("currency") { AccountCurrencyUpdate(toCurrency(it)) },
       nullableStringUpdate("note", ::AccountNoteUpdate),
       displayUpdate()
     )

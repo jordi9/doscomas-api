@@ -2,31 +2,20 @@ package com.jordi9.doscomas.feature.planning.outbound.account
 
 import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.domain.Account
-import com.jordi9.doscomas.feature.planning.domain.AccountCoreUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
-import com.jordi9.doscomas.feature.planning.domain.AccountDisplayUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountId
-import com.jordi9.doscomas.feature.planning.domain.AccountUpdate
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
 import com.jordi9.krat.jdbi.handle
 import org.intellij.lang.annotations.Language
-import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.kotlin.bindKotlin
 import org.jdbi.v3.core.kotlin.mapTo
-import java.time.Instant
 
 class AccountRepository(
   private val jdbi: Jdbi
 ) {
   suspend fun save(account: Account): Account = jdbi.handle {
-    createUpdate(INSERT_ACCOUNT)
+    createQuery(INSERT_ACCOUNT)
       .bindKotlin(account.toRecord())
-      .execute()
-
-    createQuery(accountSelect("WHERE accounts.id = :id AND accounts.space_id = :spaceId"))
-      .bind("id", account.id.value)
-      .bind("spaceId", account.spaceId.value)
       .mapTo<Account>()
       .one()
   }
@@ -39,45 +28,20 @@ class AccountRepository(
   }
 
   suspend fun findById(accountId: AccountId): Account? = jdbi.handle {
-    findAccount(accountId)
-  }
-
-  suspend fun exists(accountId: AccountId): Boolean = jdbi.handle {
-    createQuery("SELECT COUNT(*) FROM accounts WHERE id = :id")
+    createQuery(accountSelect("WHERE accounts.id = :id"))
       .bind("id", accountId.value)
-      .mapTo<Int>()
-      .one() > 0
+      .mapTo<Account>()
+      .findOne()
+      .orElse(null)
   }
 
-  suspend fun update(accountId: AccountId, updates: List<AccountUpdate>, now: Instant): Account? = jdbi.handle {
-    inTransaction<Account?, Exception> { transaction ->
-      transaction.applyUpdates(accountId, updates, now)
-    }
+  suspend fun update(account: Account): Account? = jdbi.handle {
+    createQuery(UPDATE_ACCOUNT)
+      .bindKotlin(account.toRecord())
+      .mapTo<Account>()
+      .findOne()
+      .orElse(null)
   }
-
-  private fun Handle.applyUpdates(accountId: AccountId, updates: List<AccountUpdate>, now: Instant): Account? {
-    updates.forEach { writeUpdate(accountId, it, now) }
-    return findAccount(accountId)
-  }
-
-  private fun Handle.writeUpdate(accountId: AccountId, update: AccountUpdate, now: Instant) {
-    when (update) {
-      is AccountCoreUpdate -> update.toWrite().execute(this, accountId, now)
-      is AccountDisplayUpdate -> updateDisplay(accountId, update.value, now)
-    }
-  }
-
-  private fun Handle.updateDisplay(accountId: AccountId, display: AccountDisplay, now: Instant) {
-    createUpdate(UPDATE_DISPLAY)
-      .bindKotlin(AccountDisplayRecord(accountId.value, display.toJsonText(), now.toEpochMilli()))
-      .execute()
-  }
-
-  private fun Handle.findAccount(accountId: AccountId): Account? = createQuery(accountSelect("WHERE accounts.id = :id"))
-    .bind("id", accountId.value)
-    .mapTo<Account>()
-    .findOne()
-    .orElse(null)
 }
 
 fun AccountRepository(registry: Registry) = AccountRepository(

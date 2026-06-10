@@ -2,7 +2,7 @@ package com.jordi9.doscomas.feature.planning.outbound.account
 
 import com.jordi9.doscomas.feature.planning.domain.AccountCategory
 
-internal object AccountCategoryMapper {
+object AccountCategoryMapper {
   fun toDatabase(category: AccountCategory): String = when (category) {
     AccountCategory.CASH -> "cash"
     AccountCategory.INVESTMENT -> "investment"

@@ -1,12 +1,13 @@
 package com.jordi9.doscomas.fixture
 
 import com.jordi9.doscomas.feature.planning.domain.AccountId
+import com.jordi9.doscomas.feature.planning.domain.AccountName
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
 import com.jordi9.doscomas.feature.planning.outbound.account.AccountCategoryMapper
+import com.jordi9.doscomas.feature.planning.outbound.account.CurrencyMapper
 import com.jordi9.doscomas.jdbi
 import com.jordi9.krat.jdbi.handleSync
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
 import org.jdbi.v3.core.kotlin.mapTo
 
 object SpaceTable {
@@ -19,12 +20,12 @@ object SpaceTable {
           VALUES (:id, :name, :createdAt, :updatedAt)
         """.trimIndent()
       ).bind("id", space.id.value)
-        .bind("name", space.name)
+        .bind("name", space.name.value)
         .bind("createdAt", space.createdAt.toEpochMilli())
         .bind("updatedAt", space.updatedAt.toEpochMilli())
         .execute()
     }
-    return SpaceRow(id = space.id, name = space.name)
+    return SpaceRow(id = space.id, name = space.name.value)
   }
 
   fun deleteAll() {
@@ -67,18 +68,18 @@ object AccountTable {
         """.trimIndent()
       ).bind("id", example.id.value)
         .bind("spaceId", example.spaceId.value)
-        .bind("name", example.name)
+        .bind("name", AccountName(example.name).value)
         .bind("category", AccountCategoryMapper.toDatabase(example.category))
         .bind("balanceCents", example.balance.cents)
         .bind("monthlyContributionCents", example.monthlyContribution.cents)
-        .bind("currency", example.currency)
+        .bind("currency", CurrencyMapper.toDatabase(example.currency))
         .bind("note", example.note)
         .bind("displayJson", Json.encodeToString(example.display.value))
         .bind("createdAt", example.createdAt.toEpochMilli())
         .bind("updatedAt", example.updatedAt.toEpochMilli())
         .execute()
     }
-    return AccountRow(id = example.id, spaceId = example.spaceId, name = example.name)
+    return AccountRow(id = example.id, spaceId = example.spaceId, name = AccountName(example.name).value)
   }
 
   fun displayJson(accountId: AccountId): String = jdbi().handleSync {

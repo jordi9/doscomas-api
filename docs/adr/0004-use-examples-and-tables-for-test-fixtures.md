@@ -1,9 +1,10 @@
 # Use Examples and Tables for test fixtures
 
 Test fixtures use immutable `*Example` data classes for valid domain-shaped defaults, `*Table` objects for database side
-effects, and `*Row` data classes for database results or insert receipts. Examples use domain types such as `Instant`,
-`Money`, `SpaceId`, `AccountId`, and enums; table methods are the translation boundary that bind those values into
-storage columns such as epoch milliseconds, cents, raw strings, and API enum values.
+effects, and `*Row` data classes for database results or insert receipts. Examples use domain-shaped defaults such as
+`Instant`, `Balance`, `MonthlyContribution`, `SpaceId`, `AccountId`, and enums; table methods are the translation
+boundary that bind those values into storage columns such as epoch milliseconds, cents, raw strings, and API enum
+values.
 
 This keeps tests readable without making storage details leak into setup data. A typical setup creates an example and
 passes it to a table adapter:

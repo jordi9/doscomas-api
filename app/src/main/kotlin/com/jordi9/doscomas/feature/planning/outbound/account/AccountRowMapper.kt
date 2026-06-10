@@ -3,7 +3,9 @@ package com.jordi9.doscomas.feature.planning.outbound.account
 import com.jordi9.doscomas.feature.planning.domain.Account
 import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
 import com.jordi9.doscomas.feature.planning.domain.AccountId
-import com.jordi9.doscomas.feature.planning.domain.Money
+import com.jordi9.doscomas.feature.planning.domain.AccountName
+import com.jordi9.doscomas.feature.planning.domain.Balance
+import com.jordi9.doscomas.feature.planning.domain.MonthlyContribution
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -16,11 +18,11 @@ class AccountRowMapper : RowMapper<Account> {
   override fun map(rs: ResultSet, ctx: StatementContext): Account = Account(
     id = AccountId(rs.getString("id")),
     spaceId = SpaceId(rs.getString("space_id")),
-    name = rs.getString("name"),
+    name = AccountName(rs.getString("name")),
     category = AccountCategoryMapper.toDomain(rs.getString("category")),
-    balance = Money(rs.getLong("balance_cents")),
-    monthlyContribution = Money(rs.getLong("monthly_contribution_cents")),
-    currency = rs.getString("currency"),
+    balance = Balance(rs.getLong("balance_cents")),
+    monthlyContribution = MonthlyContribution(rs.getLong("monthly_contribution_cents")),
+    currency = CurrencyMapper.toDomain(rs.getString("currency")),
     note = rs.getString("note"),
     createdAt = Instant.ofEpochMilli(rs.getLong("created_at")),
     updatedAt = Instant.ofEpochMilli(rs.getLong("updated_at")),

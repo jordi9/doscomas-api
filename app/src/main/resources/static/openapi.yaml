@@ -178,7 +178,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
     post:
       summary: Create an account in a space
-      description: Requires name, category, and balance. Money fields must be strings with at most two decimals; currency is EUR only.
+      description: Requires name, category, and balance. Amount fields must be strings with at most two decimals; currency is EUR only.
       parameters:
         - $ref: '#/components/parameters/SpaceId'
       requestBody:
@@ -195,7 +195,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AccountResponse'
         '400':
-          description: Invalid request, money format, category, currency, or ID format
+          description: Invalid request, amount format, category, currency, or ID format
           content:
             application/json:
               schema:

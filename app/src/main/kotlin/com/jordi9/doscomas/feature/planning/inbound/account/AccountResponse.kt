@@ -22,11 +22,11 @@ data class AccountResponse(
 fun Account.toResponse() = AccountResponse(
   id = id.value,
   spaceId = spaceId.value,
-  name = name,
+  name = name.value,
   category = category.toResponse(),
   balance = balance.toResponse(),
   monthlyContribution = monthlyContribution.toResponse(),
-  currency = currency,
+  currency = currency.toResponse(),
   note = note,
   createdAt = createdAt.toString(),
   updatedAt = updatedAt.toString(),

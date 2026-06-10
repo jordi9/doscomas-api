@@ -1,6 +1,7 @@
 package com.jordi9.doscomas.feature.greeting.inbound
 
 import com.jordi9.doscomas.feature.greeting.application.GetGreetingUseCase
+import com.jordi9.doscomas.feature.greeting.application.GreetingConfig
 import com.jordi9.krat.pack.core.Handler
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respondText

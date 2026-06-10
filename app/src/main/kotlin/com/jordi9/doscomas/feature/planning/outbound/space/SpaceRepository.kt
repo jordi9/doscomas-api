@@ -39,7 +39,7 @@ class SpaceRepository(
         RETURNING *
       """.trimIndent()
     ).bind("id", space.id.value)
-      .bind("name", space.name)
+      .bind("name", space.name.value)
       .bind("createdAt", space.createdAt.toEpochMilli())
       .bind("updatedAt", space.updatedAt.toEpochMilli())
       .mapTo<Space>()

@@ -5,12 +5,11 @@ import kotlin.random.Random
 import kotlin.random.asKotlinRandom
 
 class NanoIds(
-  private val random: Random = SecureRandom().asKotlinRandom(),
-  private val size: Int = DEFAULT_SIZE
+  private val random: Random = SecureRandom().asKotlinRandom()
 ) {
 
   fun get(prefix: String): String = prefix + buildString {
-    repeat(size) {
+    repeat(DEFAULT_SIZE) {
       append(ALPHABET[random.nextInt(ALPHABET.length)])
     }
   }

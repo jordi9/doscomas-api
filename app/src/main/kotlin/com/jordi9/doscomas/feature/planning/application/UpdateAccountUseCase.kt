@@ -2,18 +2,13 @@ package com.jordi9.doscomas.feature.planning.application
 
 import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.domain.Account
-import com.jordi9.doscomas.feature.planning.domain.AccountBalanceUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountCategoryUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountCurrencyUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountDisplayUpdate
+import com.jordi9.doscomas.feature.planning.domain.AccountCategory
+import com.jordi9.doscomas.feature.planning.domain.AccountDisplay
 import com.jordi9.doscomas.feature.planning.domain.AccountId
-import com.jordi9.doscomas.feature.planning.domain.AccountMonthlyContributionUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountNameUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountNoteUpdate
-import com.jordi9.doscomas.feature.planning.domain.AccountUpdate
-import com.jordi9.doscomas.feature.planning.domain.validBalance
-import com.jordi9.doscomas.feature.planning.domain.validCurrency
-import com.jordi9.doscomas.feature.planning.domain.validName
+import com.jordi9.doscomas.feature.planning.domain.AccountName
+import com.jordi9.doscomas.feature.planning.domain.Balance
+import com.jordi9.doscomas.feature.planning.domain.Currency
+import com.jordi9.doscomas.feature.planning.domain.MonthlyContribution
 import com.jordi9.doscomas.feature.planning.domain.validNote
 import com.jordi9.doscomas.feature.planning.outbound.account.AccountRepository
 import com.jordi9.doscomas.shared.domain.NotFoundException
@@ -24,12 +19,19 @@ class UpdateAccountUseCase(
   private val clock: TimeClock
 ) {
   suspend operator fun invoke(request: UpdateAccountRequest): Account {
-    val updates = request.updates.validated()
-    if (!accounts.exists(request.accountId)) {
-      throw NotFoundException("Account not found: ${request.accountId.value}")
+    val updates = request.updates.map { it.validated() }
+    val current = accounts.findById(request.accountId)
+      ?: throw NotFoundException("Account not found: ${request.accountId.value}")
+
+    if (updates.isEmpty()) {
+      return current
     }
 
-    return accounts.update(request.accountId, updates, clock.now())
+    val updated = updates
+      .fold(current) { account, update -> account.with(update) }
+      .copy(updatedAt = clock.now())
+
+    return accounts.update(updated)
       ?: throw NotFoundException("Account not found: ${request.accountId.value}")
   }
 }
@@ -39,16 +41,40 @@ data class UpdateAccountRequest(
   val updates: List<AccountUpdate>
 )
 
-private fun List<AccountUpdate>.validated(): List<AccountUpdate> = map { it.validated() }
+sealed interface AccountUpdate
+
+data class AccountNameUpdate(val value: AccountName) : AccountUpdate
+
+data class AccountCategoryUpdate(val value: AccountCategory) : AccountUpdate
+
+data class AccountBalanceUpdate(val value: Balance) : AccountUpdate
+
+data class AccountMonthlyContributionUpdate(val value: MonthlyContribution) : AccountUpdate
+
+data class AccountCurrencyUpdate(val value: Currency) : AccountUpdate
+
+data class AccountNoteUpdate(val value: String?) : AccountUpdate
+
+data class AccountDisplayUpdate(val value: AccountDisplay) : AccountUpdate
 
 private fun AccountUpdate.validated(): AccountUpdate = when (this) {
-  is AccountNameUpdate -> copy(value = validName(value))
+  is AccountNameUpdate -> this
   is AccountCategoryUpdate -> this
-  is AccountBalanceUpdate -> copy(value = validBalance(value))
+  is AccountBalanceUpdate -> this
   is AccountMonthlyContributionUpdate -> this
-  is AccountCurrencyUpdate -> copy(value = validCurrency(value))
+  is AccountCurrencyUpdate -> this
   is AccountNoteUpdate -> copy(value = value?.let(::validNote))
   is AccountDisplayUpdate -> this
+}
+
+private fun Account.with(update: AccountUpdate): Account = when (update) {
+  is AccountNameUpdate -> copy(name = update.value)
+  is AccountCategoryUpdate -> copy(category = update.value)
+  is AccountBalanceUpdate -> copy(balance = update.value)
+  is AccountMonthlyContributionUpdate -> copy(monthlyContribution = update.value)
+  is AccountCurrencyUpdate -> copy(currency = update.value)
+  is AccountNoteUpdate -> copy(note = update.value)
+  is AccountDisplayUpdate -> copy(display = update.value)
 }
 
 fun UpdateAccountUseCase(registry: Registry) = UpdateAccountUseCase(

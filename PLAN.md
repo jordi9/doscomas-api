@@ -17,9 +17,76 @@ Keep this slice small:
 
 - `CONTEXT.md` — glossary for User, Space, Account, Balance, Monthly Contribution, Account Category, Account Display.
 - `docs/adr/0001-money-storage-and-api-format.md` — store money as cents internally, expose decimal strings in the API.
-- `docs/adr/0002-use-generated-opaque-string-identifiers.md` — generated opaque prefixed IDs.
-- `docs/adr/0003-use-semantic-value-objects-for-opaque-json-objects.md` — opaque JSON objects use semantic value objects; account display is the first case.
-- `docs/adr/0005-use-direct-account-routes-for-single-account-resources.md` — single-account reads and updates use direct account routes.
+
+## Architecture review follow-up
+
+The Spaces and Accounts behavior is implemented, but the next cleanup slice should improve DDD, clean code, and hexagonal boundaries without changing the public API contract.
+
+### 1. Make planning invariants explicit domain types
+
+Introduce semantic value objects/types so `Space` and `Account` are always-valid at construction time:
+
+- `SpaceName` and `AccountName`: constructors validate non-blank, maximum 120 characters, and already-normalized values.
+- `Balance`: wraps account balance cents and enforces non-negative values.
+- `MonthlyContribution`: wraps monthly contribution cents and allows negative values.
+- `Currency`: domain enum with `EUR` as the only supported value for now.
+- Defer `AccountNote`; keep `String?` plus the current 500-character validation until the core invariant refactor is complete.
+
+Boundary rules for this refactor:
+
+- Inbound adapters trim raw JSON names before constructing `SpaceName` or `AccountName`.
+- Value object `init` blocks guard invariants directly; do not hide normalization in constructors.
+- Application commands receive normalized domain value objects, not raw request strings.
+- Domain entities use the value objects directly instead of primitive `String`/generic `Money` fields where the concepts differ.
+- Do not add retroactive SQLite `CHECK` migrations in this slice; make the domain/application boundary correct first.
+
+### 2. Remove PATCH command shape from the domain
+
+`AccountUpdate` and its field-specific variants currently model PATCH/application field presence in `domain/` and are also consumed by outbound SQL code. Move that command shape out of the domain.
+
+Preferred direction:
+
+- Inbound keeps HTTP PATCH semantics: missing means unchanged, explicit `null` clears nullable fields, and invalid nulls return `400`.
+- Application owns the normalized update command.
+- Domain exposes valid account concepts and/or behavior, not HTTP field-presence details.
+- Repository persistence should not depend on domain classes whose only reason to exist is PATCH transport semantics.
+
+A simple implementation option is to load the current `Account`, apply normalized changes in application/domain code, then persist the updated account row. Prefer clarity over clever dynamic SQL until performance needs prove otherwise.
+
+If keeping column-level updates temporarily, collapse the old display-specific split: `display_json` is now a normal account column, so `AccountCoreUpdate`, `AccountCoreWrite`, `AccountField`, `AccountDisplayRecord`, and `UPDATE_DISPLAY` should not survive as separate machinery.
+
+### 3. Simplify update not-found handling
+
+`UpdateAccountUseCase` currently checks `accounts.exists(accountId)` before calling `accounts.update(...)`, then handles `null` again. Remove the pre-check and let the update/load path be the single source of truth for `404` handling.
+
+### 4. Fix hexagonal boundary leaks
+
+`feature/greeting/application/GetGreetingUseCase.kt` imports `feature.greeting.inbound.GreetingConfig`, which makes the application layer depend on an inbound adapter. Either move that config out of inbound or remove the sample greeting feature when skeleton endpoints are cleaned up.
+
+### 5. Revisit skeleton endpoints
+
+`/hello` and `/api/v1/items` are template/sample features and are not part of the Dos Comas planning language in `CONTEXT.md`. Keep them only while they are useful as scaffolding; otherwise remove or isolate them so they do not distract from the planning bounded context.
+
+### 6. Tighten architecture tests
+
+Extend `ArchitectureShould` to guard the boundaries that the current tests miss:
+
+- Application code must not depend on inbound adapters.
+- Outbound adapters must not depend on inbound adapters.
+- Shared code must not depend on feature code.
+- Domain purity should include framework/persistence/serialization packages, with explicit documented exceptions; `AccountDisplay` using `JsonObject` remains the ADR 0003 exception.
+
+### 7. Other behavior-preserving cleanup
+
+Add these to the mechanical cleanup batch before or alongside the invariant refactor:
+
+- Change `AccountRepository.save` to use `INSERT ... RETURNING *`, matching `SpaceRepository.save`, instead of insert plus re-select.
+- Harden generic `500` handling: return a generic client message, record the exception on the active span, and revisit the blanket `NumberFormatException -> 400` mapping so server bugs are not accidentally reported as client ID errors.
+- Remove the unused `ItemRepository.deleteAll()` production method; table cleanup belongs in test fixtures.
+- Remove the unused `NanoIds.size` constructor parameter, or make validation honor it. Prefer removing it as YAGNI.
+- If `/api/v1/items` remains as a sample, align its timestamp/domain-construction style with planning; otherwise delete the sample feature with the skeleton endpoint cleanup.
+
+Refactor in small TDD-safe steps and keep the public HTTP behavior and OpenAPI route coverage unchanged unless a route cleanup is intentionally scoped.
 
 ## Routes
 

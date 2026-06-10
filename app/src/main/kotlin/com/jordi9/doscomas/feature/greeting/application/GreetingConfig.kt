@@ -1,4 +1,4 @@
-package com.jordi9.doscomas.feature.greeting.inbound
+package com.jordi9.doscomas.feature.greeting.application
 
 import kotlinx.serialization.Serializable
 

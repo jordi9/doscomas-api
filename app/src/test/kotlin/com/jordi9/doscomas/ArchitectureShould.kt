@@ -9,15 +9,33 @@ import io.kotest.core.spec.style.StringSpec
 
 class ArchitectureShould : StringSpec({
 
-  "keep domain isolated from adapters and frameworks" {
+  "keep domain isolated from adapters and framework or persistence packages" {
     noClasses()
       .that().resideInAPackage("..domain..")
       .should().dependOnClassesThat().resideInAnyPackage(
         "..inbound..",
         "..outbound..",
         "io.ktor..",
-        "org.jdbi.."
+        "org.jdbi..",
+        "java.sql.."
       )
+      .check(productionClasses)
+  }
+
+  "document AccountDisplay as the domain JSON exception from ADR 0003" {
+    // Account appears in bytecode because AccountDisplay is a Kotlin value class wrapping JsonObject.
+    noClasses()
+      .that().resideInAPackage("..domain..")
+      .and().doNotHaveSimpleName("AccountDisplay")
+      .and().doNotHaveSimpleName("Account")
+      .should().dependOnClassesThat().resideInAPackage("kotlinx.serialization..")
+      .check(productionClasses)
+  }
+
+  "keep application use cases from depending on inbound adapters" {
+    noClasses()
+      .that().resideInAPackage("..feature..application..")
+      .should().dependOnClassesThat().resideInAPackage("..feature..inbound..")
       .check(productionClasses)
   }
 
@@ -25,6 +43,20 @@ class ArchitectureShould : StringSpec({
     noClasses()
       .that().resideInAPackage("..feature..inbound..")
       .should().dependOnClassesThat().resideInAPackage("..feature..outbound..")
+      .check(productionClasses)
+  }
+
+  "keep outbound adapters from depending on inbound adapters" {
+    noClasses()
+      .that().resideInAPackage("..feature..outbound..")
+      .should().dependOnClassesThat().resideInAPackage("..feature..inbound..")
+      .check(productionClasses)
+  }
+
+  "keep shared code independent from feature code" {
+    noClasses()
+      .that().resideInAPackage("..shared..")
+      .should().dependOnClassesThat().resideInAPackage("..feature..")
       .check(productionClasses)
   }
 

@@ -20,6 +20,13 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
       .and().`timestamps are current`()
   }
 
+  "create a space trims name" {
+    Given.`no spaces exist`()
+    When.`creating a space named`("  FIRE  ")
+    Then.`a resource was created`()
+      .and().`the space has name FIRE`()
+  }
+
   "get a space by ID" {
     Given.`a space exists`()
     When.`getting the current space`()
@@ -34,6 +41,13 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
       .and().`the account id is public`()
       .and().`the account belongs to the current space`()
       .and().`the account has create defaults`()
+  }
+
+  "create an account trims name" {
+    Given.`a space exists`()
+    When.`creating an account named`("  Cash  ")
+    Then.`a resource was created`()
+      .and().`the account has name`("Cash")
   }
 
   "create an account with client-owned display" {
@@ -162,11 +176,11 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
       .and().`note is null`()
   }
 
-  "reject invalid money precision" {
+  "reject invalid amount precision" {
     Given.`a space exists`()
-    When.`creating an account with invalid money precision`()
+    When.`creating an account with invalid amount precision`()
     Then.`the response is bad request`()
-      .and().`the error is`("Invalid money precision")
+      .and().`the error is`("Invalid amount precision")
   }
 
   "reject missing required account field" {
@@ -176,7 +190,7 @@ class PlanningShould : ScenarioStringSpec<GivenPlanning, WhenPlanning, ThenPlann
       .and().`the error is`("balance is required")
   }
 
-  "reject non-string money" {
+  "reject non-string amount" {
     Given.`a space exists`()
     When.`creating an account with numeric balance`()
     Then.`the response is bad request`()

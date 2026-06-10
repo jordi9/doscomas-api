@@ -13,7 +13,7 @@ data class SpaceResponse(
 
 fun Space.toResponse() = SpaceResponse(
   id = id.value,
-  name = name,
+  name = name.value,
   createdAt = createdAt.toString(),
   updatedAt = updatedAt.toString()
 )

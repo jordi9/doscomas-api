@@ -1,6 +1,6 @@
 package com.jordi9.doscomas
 
-import com.jordi9.doscomas.feature.greeting.inbound.GreetingConfig
+import com.jordi9.doscomas.feature.greeting.application.GreetingConfig
 import com.jordi9.doscomas.feature.greeting.inbound.HelloHandler
 import com.jordi9.doscomas.feature.item.inbound.CreateItemHandler
 import com.jordi9.doscomas.feature.item.inbound.GetItemHandler

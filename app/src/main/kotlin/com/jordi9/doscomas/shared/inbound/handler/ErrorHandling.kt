@@ -38,9 +38,6 @@ fun Application.installErrorHandling() {
     exception<ParameterConversionException> { call, e ->
       call.clientError(HttpStatusCode.BadRequest, e, "Invalid ${e.parameterName} format")
     }
-    exception<NumberFormatException> { call, e ->
-      call.clientError(HttpStatusCode.BadRequest, e, "Invalid ID format")
-    }
 
     exception<Throwable> { call, e -> call.serverError(HttpStatusCode.InternalServerError, e) }
   }
@@ -60,8 +57,9 @@ private fun Throwable.requestBodyError(default: String? = "Invalid request body"
 private fun Throwable.causeChain(): Sequence<Throwable> = generateSequence(this) { it.cause }
 
 private suspend fun ApplicationCall.serverError(status: HttpStatusCode, e: Throwable) {
-  Span.current().setStatus(StatusCode.ERROR, e.message ?: "Unknown error")
-  respond(status, ErrorResponse(e.message ?: "Error"))
+  Span.current().recordException(e)
+  Span.current().setStatus(StatusCode.ERROR, "Unhandled exception")
+  respond(status, ErrorResponse("Internal server error"))
 }
 
 @Serializable

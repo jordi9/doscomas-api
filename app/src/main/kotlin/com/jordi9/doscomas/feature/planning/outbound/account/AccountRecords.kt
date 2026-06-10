@@ -21,11 +21,11 @@ data class AccountRecord(
 fun Account.toRecord() = AccountRecord(
   id = id.value,
   spaceId = spaceId.value,
-  name = name,
+  name = name.value,
   category = AccountCategoryMapper.toDatabase(category),
   balanceCents = balance.cents,
   monthlyContributionCents = monthlyContribution.cents,
-  currency = currency,
+  currency = CurrencyMapper.toDatabase(currency),
   note = note,
   displayJson = display.toJsonText(),
   createdAt = createdAt.toEpochMilli(),

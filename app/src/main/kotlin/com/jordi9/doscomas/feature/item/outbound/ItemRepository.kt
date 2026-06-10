@@ -4,7 +4,6 @@ import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.item.domain.Item
 import com.jordi9.doscomas.feature.item.domain.ItemId
 import com.jordi9.krat.jdbi.handle
-import com.jordi9.krat.time.TimeClock
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.kotlin.mapTo
 import org.jdbi.v3.core.mapper.RowMapper
@@ -13,8 +12,7 @@ import java.sql.ResultSet
 import java.time.Instant
 
 class ItemRepository(
-  private val jdbi: Jdbi,
-  private val clock: TimeClock
+  private val jdbi: Jdbi
 ) {
   suspend fun findAll(): List<Item> = jdbi.handle {
     createQuery("SELECT * FROM items ORDER BY created_at DESC")
@@ -30,8 +28,7 @@ class ItemRepository(
       .orElse(null)
   }
 
-  suspend fun save(name: String, description: String?): Item = jdbi.handle {
-    val now = clock.now().toEpochMilli()
+  suspend fun save(name: String, description: String?, now: Instant): Item = jdbi.handle {
     createQuery(
       """
                 INSERT INTO items (name, description, created_at, updated_at)
@@ -40,13 +37,9 @@ class ItemRepository(
       """.trimIndent()
     ).bind("name", name)
       .bind("description", description)
-      .bind("now", now)
+      .bind("now", now.toEpochMilli())
       .mapTo<Item>()
       .one()
-  }
-
-  suspend fun deleteAll() = jdbi.handle {
-    execute("DELETE FROM items")
   }
 }
 
@@ -61,8 +54,7 @@ class ItemRowMapper : RowMapper<Item> {
 }
 
 fun ItemRepository(registry: Registry) = ItemRepository(
-  jdbi = registry.jdbi,
-  clock = registry.timeClock
+  jdbi = registry.jdbi
 )
 
 internal fun registerItemMappers(jdbi: Jdbi) {
