@@ -4,10 +4,6 @@ Doscomas: Kotlin REST API backend using Ktor and hexagonal architecture.
 
 **BEFORE implementing, planning, or discussing architecture: invoke the `backend-mode` skill.**
 
-## Current handoff
-
-Read `NOW.md` after this file before starting work. It captures the current focus and handoff notes for new sessions.
-
 ## Build Commands
 
 ```bash

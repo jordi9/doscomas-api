@@ -1,20 +1,11 @@
 package com.jordi9.doscomas.feature.planning.domain
 
 import com.jordi9.doscomas.shared.domain.validate
-import kotlin.math.absoluteValue
 
 @JvmInline
 value class Money(
   val cents: Long
 ) {
-  fun toApiString(): String {
-    val sign = if (cents < 0) "-" else ""
-    val absolute = cents.absoluteValue
-    val euros = absolute / 100
-    val centsPart = (absolute % 100).toString().padStart(2, '0')
-    return "$sign$euros.$centsPart"
-  }
-
   companion object {
     fun parse(value: String): Money {
       val negative = value.startsWith("-")
