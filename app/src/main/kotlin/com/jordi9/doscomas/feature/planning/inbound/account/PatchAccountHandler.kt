@@ -12,7 +12,6 @@ import com.jordi9.doscomas.feature.planning.domain.AccountMonthlyContributionUpd
 import com.jordi9.doscomas.feature.planning.domain.AccountNameUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountNoteUpdate
 import com.jordi9.doscomas.feature.planning.domain.AccountUpdate
-import com.jordi9.doscomas.feature.planning.domain.Money
 import com.jordi9.doscomas.feature.planning.inbound.rejectUnknownFields
 import com.jordi9.doscomas.feature.planning.inbound.stringValue
 import com.jordi9.doscomas.feature.planning.inbound.validateRequest
@@ -43,8 +42,8 @@ private fun JsonObject.toUpdateRequest(accountId: AccountId): UpdateAccountReque
     updates = listOfNotNull(
       stringUpdate("name", ::AccountNameUpdate),
       stringUpdate("category") { AccountCategoryUpdate(toAccountCategory(it)) },
-      stringUpdate("balance") { AccountBalanceUpdate(Money.parse(it)) },
-      stringUpdate("monthlyContribution") { AccountMonthlyContributionUpdate(Money.parse(it)) },
+      stringUpdate("balance") { AccountBalanceUpdate(toMoney(it)) },
+      stringUpdate("monthlyContribution") { AccountMonthlyContributionUpdate(toMoney(it)) },
       stringUpdate("currency", ::AccountCurrencyUpdate),
       nullableStringUpdate("note", ::AccountNoteUpdate),
       displayUpdate()

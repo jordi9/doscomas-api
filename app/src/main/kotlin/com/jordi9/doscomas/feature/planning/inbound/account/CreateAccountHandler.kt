@@ -3,7 +3,6 @@ package com.jordi9.doscomas.feature.planning.inbound.account
 import com.jordi9.doscomas.Registry
 import com.jordi9.doscomas.feature.planning.application.CreateAccountRequest
 import com.jordi9.doscomas.feature.planning.application.CreateAccountUseCase
-import com.jordi9.doscomas.feature.planning.domain.Money
 import com.jordi9.doscomas.feature.planning.domain.SpaceId
 import com.jordi9.doscomas.feature.planning.inbound.stringValue
 import com.jordi9.krat.pack.core.Handler
@@ -27,8 +26,8 @@ class CreateAccountHandler(
         spaceId = SpaceId(spaceId),
         name = request.name,
         category = toAccountCategory(request.category),
-        balance = Money.parse(request.balance.stringValue("balance")),
-        monthlyContribution = Money.parse(request.monthlyContribution.stringValue("monthlyContribution")),
+        balance = toMoney(request.balance.stringValue("balance")),
+        monthlyContribution = toMoney(request.monthlyContribution.stringValue("monthlyContribution")),
         currency = request.currency,
         note = request.note,
         display = request.display.toAccountDisplay()
