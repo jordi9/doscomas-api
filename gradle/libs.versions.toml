@@ -40,7 +40,7 @@ opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk" }
 opentelemetry-ktor = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:2.27.0-alpha"
 
 krat-pack-core = "com.jordi9:krat-pack-core:0.1.1"
-krat-pack-cors = "com.jordi9:krat-pack-cors:0.1.0"
+krat-pack-cors = "com.jordi9:krat-pack-cors:1.0.0"
 krat-pack-otel = "com.jordi9:krat-pack-otel:1.0.0"
 krat-pack-testlib = "com.jordi9:krat-pack-testlib:1.2.1"
 krat-jdbi = "com.jordi9:krat-jdbi:0.1.0"
