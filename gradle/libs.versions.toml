@@ -1,13 +1,13 @@
 [versions]
 archunit = "1.4.2"
-kotlin = "2.3.21"
-micrometer = "1.16.5"
-opentelemetry = "1.62.0"
-opentelemetry-alpha = "1.62.0-alpha"
+kotlin = "2.4.0"
+micrometer = "1.17.0"
+opentelemetry = "1.63.0"
+opentelemetry-alpha = "1.63.0-alpha"
 
 [libraries]
 archunit = { module = "com.tngtech.archunit:archunit", version.ref = "archunit" }
-ktor-bom = "io.ktor:ktor-bom:3.5.0"
+ktor-bom = "io.ktor:ktor-bom:3.5.1"
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json" }
@@ -20,14 +20,14 @@ ktor-server-call-id = { module = "io.ktor:ktor-server-call-id" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages" }
 ktor-redoc = "io.github.smiley4:ktor-redoc:5.7.0"
 
-kotest-bom = "io.kotest:kotest-bom:6.1.11"
+kotest-bom = "io.kotest:kotest-bom:6.2.1"
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core" }
 
-logback = "ch.qos.logback:logback-classic:1.5.32"
+logback = "ch.qos.logback:logback-classic:1.5.37"
 kotlinx-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0"
-sqlite-jdbc = "org.xerial:sqlite-jdbc:3.53.1.0"
-flyway-core = "org.flywaydb:flyway-core:12.6.1"
+sqlite-jdbc = "org.xerial:sqlite-jdbc:3.53.2.0"
+flyway-core = "org.flywaydb:flyway-core:12.9.0"
 
 micrometer-bom = { module = "io.micrometer:micrometer-bom", version.ref = "micrometer" }
 micrometer-core = { module = "io.micrometer:micrometer-core" }
@@ -37,7 +37,7 @@ opentelemetry-bom = { module = "io.opentelemetry:opentelemetry-bom", version.ref
 opentelemetry-bom-alpha = { module = "io.opentelemetry:opentelemetry-bom-alpha", version.ref = "opentelemetry-alpha" }
 opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api" }
 opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk" }
-opentelemetry-ktor = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:2.27.0-alpha"
+opentelemetry-ktor = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:2.29.0-alpha"
 
 krat-pack-core = "com.jordi9:krat-pack-core:0.1.1"
 krat-pack-cors = "com.jordi9:krat-pack-cors:1.0.0"
@@ -56,4 +56,4 @@ krat-gag = "com.jordi9:krat-gag:0.1.0"
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-spotless = "com.diffplug.spotless:8.4.0"
+spotless = "com.diffplug.spotless:8.7.0"
